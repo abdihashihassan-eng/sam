@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SAHAN DATA · Admin Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: linear-gradient(145deg, #3d9ce0 0%, #73c2f0 100%); min-height: 100vh; padding: 1.5rem 1rem 5rem; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .title-section { text-align: center; margin-bottom: 1.5rem; }
+        .title-section h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); color: #1e1e1e; font-weight: 700; letter-spacing: 1px; }
+        .title-section h1 i { color: #FFD700; margin: 0 8px; font-size: clamp(1.5rem, 4vw, 2.2rem); }
+        .title-section p { color: #ffd966; font-size: 0.9rem; }
+        .nav-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; margin-bottom: 1.5rem; background: rgba(0,0,0,0.3); padding: 0.4rem; border-radius: 2rem; }
+        .nav-tabs a { background: white; color: #1e3c72; text-decoration: none; padding: 0.3rem 0.8rem; border-radius: 2rem; font-size: 0.7rem; font-weight: 600; transition: 0.2s; white-space: nowrap; }
+        .nav-tabs a:hover { background: #ffd966; }
+        .card { background: white; border-radius: 2rem; padding: 1.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .admin-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 2rem; border-bottom: 2px solid #e9ecef; padding-bottom: 0.6rem; }
+        .admin-tab { padding: 0.4rem 0.9rem; background: #e9ecef; border-radius: 2rem; font-weight: 600; color: #1e3c72; cursor: pointer; font-size: 0.8rem; transition: 0.2s; white-space: nowrap; }
+        .admin-tab.active { background: #2e7d32; color: white; }
+        .admin-tab i { margin-right: 0.3rem; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .form-panel { background: #f8f9fa; border-radius: 1.5rem; padding: 1.2rem; margin-bottom: 1.5rem; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }
+        .form-group { margin-bottom: 0.8rem; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 0.2rem; color: #1e3c72; font-size: 0.8rem; }
+        .form-group input, .form-group select { width: 100%; padding: 0.7rem; border: 2px solid #e9ecef; border-radius: 1.5rem; font-size: 0.9rem; background: white; }
+        .btn { padding: 0.7rem 1.5rem; border-radius: 3rem; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; background: linear-gradient(135deg, #f59e0b, #e67e22); color: white; font-size: 0.9rem; }
+        .btn-secondary { background: #e9ecef; color: #1e3c72; }
+        .table-container { overflow-x: auto; margin-top: 1rem; border-radius: 1rem; background: white; padding: 0.3rem; }
+        table { width: 100%; min-width: 600px; border-collapse: collapse; }
+        th, td { padding: 0.7rem 0.5rem; text-align: left; border-bottom: 1px solid #e9ecef; font-size: 0.8rem; }
+        th { background: #f1f3f5; color: #1e3c72; font-weight: 600; white-space: nowrap; }
+        .action-btn { background: none; border: none; color: #2e7d32; margin: 0 3px; cursor: pointer; font-size: 1rem; padding: 0.2rem; }
+        .action-btn.delete { color: #e74c3c; }
+        .status-badge { padding: 0.2rem 0.5rem; border-radius: 1rem; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .msg { margin-top: 0.5rem; padding: 0.6rem; border-radius: 1rem; font-size: 0.85rem; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .stat-box { background: #e9ecef; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-around; flex-wrap: wrap; }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 1.3rem; font-weight: bold; color: #1e3c72; }
+        .stat-label { font-size: 0.75rem; color: #495057; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 8px 0 15px; border-top: 1px solid #eef2f6; backdrop-filter: blur(10px); background: rgba(255,255,255,0.95); z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 0.7rem; text-decoration: none; cursor: pointer; }
+        .nav-item.active { color: #2e7d32; font-weight: 600; }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 0.1rem; }
+        @media (max-width: 640px) { .card { padding: 1rem; } .admin-tabs { justify-content: center; } .admin-tab { font-size: 0.7rem; padding: 0.3rem 0.7rem; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="title-section">
+        <h1><i class="fas fa-star"></i> SAHAN DATA <i class="fas fa-star"></i></h1>
+        <p>Admin Panel · Maamulka Guud</p>
+    </div>
+    <div class="nav-tabs">
+        <a href="index.html">Home</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="admin.html">Admin</a>
+    </div>
+    <div class="card">
+        <div class="admin-tabs">
+            <div class="admin-tab active" data-tab="orders"><i class="fas fa-shopping-cart"></i> Dalabyada</div>
+            <div class="admin-tab" data-tab="companies"><i class="fas fa-building"></i> Shirkadaha</div>
+            <div class="admin-tab" data-tab="services"><i class="fas fa-wifi"></i> Adeegyada</div>
+            <div class="admin-tab" data-tab="plans"><i class="fas fa-box"></i> Qorshayaasha</div>
+            <div class="admin-tab" data-tab="payments"><i class="fas fa-credit-card"></i> Hababka Bixinta</div>
+            <div class="admin-tab" data-tab="customers"><i class="fas fa-users"></i> Macaamiisha</div>
+            <div class="admin-tab" data-tab="promo"><i class="fas fa-tags"></i> Promo Pool</div>
+        </div>
+
+        <!-- ORDERS TAB -->
+        <div id="tab-orders" class="tab-content active">
+            <div class="table-container">
+                <table id="ordersTable">
+                    <thead><tr><th>Order #</th><th>Phone</th><th>Qorshe</th><th>Amount</th><th>Promo</th><th>Status</th><th>Date</th><th>Fal</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- COMPANIES TAB -->
+        <div id="tab-companies" class="tab-content">
+            <div class="form-panel">
+                <h3>➕ Ku dar Shirkad</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Magaca *</label><input id="compName" placeholder="Hormuud"></div>
+                    <div class="form-group"><label>Midab</label><input type="color" id="compColor" value="#2e7d32"></div>
+                    <div class="form-group"><label>Logo URL</label><input id="compLogo"></div>
+                    <div class="form-group"><label>Letter</label><input id="compLetter" maxlength="1" placeholder="H"></div>
+                </div>
+                <button class="btn" onclick="addCompany()">💾 Save</button>
+                <div id="compMsg" class="msg"></div>
+            </div>
+            <div class="table-container"><table id="companiesTable"><thead><tr><th>Magac</th><th>Midab</th><th>Logo</th><th>Fal</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <!-- SERVICES TAB -->
+        <div id="tab-services" class="tab-content">
+            <div class="form-panel">
+                <h3>➕ Ku dar Adeeg</h3>
+                <div class="form-group"><label>Shirkad</label><select id="svcCompany"></select></div>
+                <div class="form-group"><label>Magaca *</label><input id="svcName"></div>
+                <div class="form-group"><label>Icon (emoji)</label><input id="svcIcon" placeholder="📱"></div>
+                <div class="form-group"><label>Sawir URL</label><input id="svcImage"></div>
+                <button class="btn" onclick="addService()">💾 Save</button>
+                <div id="svcMsg" class="msg"></div>
+            </div>
+            <div class="table-container"><table id="servicesTable"><thead><tr><th>Shirkad</th><th>Magac</th><th>Icon</th><th>Fal</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <!-- PLANS TAB -->
+        <div id="tab-plans" class="tab-content">
+            <div class="form-panel">
+                <h3>➕ Ku dar Qorshe</h3>
+                <div class="form-group"><label>Adeeg</label><select id="planService"></select></div>
+                <div class="form-group"><label>Magaca *</label><input id="planName"></div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Qiimaha ($) *</label><input type="number" step="0.01" id="planPrice"></div>
+                    <div class="form-group"><label>Muddada</label><input id="planPeriod"></div>
+                </div>
+                <button class="btn" onclick="addPlan()">💾 Save</button>
+                <div id="planMsg" class="msg"></div>
+            </div>
+            <div class="table-container"><table id="plansTable"><thead><tr><th>Adeeg</th><th>Magac</th><th>Qiimo</th><th>Fal</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <!-- PAYMENTS TAB -->
+        <div id="tab-payments" class="tab-content">
+            <div class="form-panel">
+                <h3>➕ Ku dar Hab Bixin</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>ID *</label><input id="payId" placeholder="evc"></div>
+                    <div class="form-group"><label>Magaca *</label><input id="payName" placeholder="EVC Plus"></div>
+                    <div class="form-group"><label>USSD Prefix *</label><input id="payUssd" placeholder="*712*612538844*"></div>
+                </div>
+                <button class="btn" onclick="addPayment()">💾 Save</button>
+                <div id="payMsg" class="msg"></div>
+            </div>
+            <div class="table-container"><table id="paymentsTable"><thead><tr><th>ID</th><th>Magac</th><th>USSD</th><th>Active</th><th>Fal</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <!-- CUSTOMERS TAB -->
+        <div id="tab-customers" class="tab-content">
+            <div class="table-container"><table id="customersTable"><thead><tr><th>Magac</th><th>Phone</th><th>Promo</th><th>Admin?</th><th>Fal</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <!-- PROMO POOL TAB -->
+        <div id="tab-promo" class="tab-content">
+            <div class="stat-box">
+                <div class="stat-item"><div class="stat-value" id="totalCodes">-</div><div class="stat-label">Wadarta</div></div>
+                <div class="stat-item"><div class="stat-value" id="availableCodes">-</div><div class="stat-label">Diyaar ah</div></div>
+            </div>
+            <button class="btn" onclick="fillPool()">➕ Buuxi Pool</button>
+            <span id="poolMsg" class="msg"></span>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+    <a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>Leaderboard</span></a>
+    <a href="admin.html" class="nav-item active"><i class="fas fa-user-shield"></i><span>Admin</span></a>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://xccbmivhcbukqyplstae.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjY2JtaXZoY2J1a3F5cGxzdGFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTcyNTIsImV4cCI6MjA4NjkzMzI1Mn0.lGr3cDItP1-LVJgzd5wW5gp0HsGUonuZj-T9qGL2nF0';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function requireAdmin() {
+        const { data: { user } } = await sb.auth.getUser();
+        if (!user) { window.location.href = 'login.html'; return false; }
+        const { data: isAdmin } = await sb.rpc('is_admin');
+        if (!isAdmin) { alert('Admin only'); window.location.href = 'index.html'; return false; }
+        return true;
+    }
+
+    async function callRpc(fn, params) {
+        const { data, error } = await sb.rpc(fn, params);
+        if (error) throw error;
+        return data;
+    }
+
+    // ============ ORDERS ============
+    async function loadOrders() {
+        try {
+            const raw = await callRpc('admin_get_orders');
+            const orders = Array.isArray(raw) ? raw : JSON.parse(raw || '[]');
+            const tbody = document.querySelector('#ordersTable tbody');
+            tbody.innerHTML = orders.map(o => {
+                const cls = 'status-' + o.status;
+                const actBtns = o.status === 'pending' ? `
+                    <button class="action-btn" style="color:green;" onclick="confirmOrder('${o.id}')"><i class="fas fa-check"></i></button>
+                    <button class="action-btn delete" onclick="cancelOrder('${o.id}')"><i class="fas fa-times"></i></button>
+                ` : '';
+                return `<tr>
+                    <td>${o.order_number}</td>
+                    <td>${o.customer_phone}</td>
+                    <td>${o.plan_name || o.product_id}</td>
+                    <td>$${o.amount}</td>
+                    <td>${o.promo_code || ''}</td>
+                    <td><span class="status-badge ${cls}">${o.status}</span></td>
+                    <td>${new Date(o.created_at).toLocaleDateString('so-SO')}</td>
+                    <td>${actBtns}</td>
+                </tr>`;
+            }).join('');
+        } catch (e) { alert('Orders: ' + e.message); }
+    }
+
+    window.confirmOrder = async (id) => {
+        if (!confirm('Xaqiiji?')) return;
+        try {
+            await callRpc('admin_confirm_order', { order_id: id });
+            loadOrders(); // Refresh
+        } catch (e) { alert('Qalad: ' + e.message); }
+    };
+
+    window.cancelOrder = async (id) => {
+        const reason = prompt('Sababta:');
+        if (!reason) return;
+        try {
+            await callRpc('admin_cancel_order', { order_id: id, reason: reason });
+            loadOrders();
+        } catch (e) { alert('Qalad: ' + e.message); }
+    };
+
+    // ============ COMPANIES ============
+    async function loadCompanies() {
+        const data = await callRpc('admin_get_companies');
+        document.querySelector('#companiesTable tbody').innerHTML = data.map(c => `
+            <tr>
+                <td>${c.name}</td>
+                <td style="background:${c.color}; width:20px;"></td>
+                <td>${c.logo_url ? '✅' : '❌'}</td>
+                <td><button class="action-btn delete" onclick="deleteCompany(${c.id})"><i class="fas fa-trash"></i></button></td>
+            </tr>
+        `).join('');
+    }
+    window.addCompany = async () => {
+        const name = document.getElementById('compName').value;
+        if(!name) return alert('Magac fasah');
+        await callRpc('admin_add_company', { 
+            p_name: name, 
+            p_color: document.getElementById('compColor').value,
+            p_logo_url: document.getElementById('compLogo').value,
+            p_letter: document.getElementById('compLetter').value
+        });
+        loadCompanies();
+    };
+    window.deleteCompany = async (id) => { if(confirm('Tirtir?')) { await callRpc('admin_delete_company', { p_id: id }); loadCompanies(); } };
+
+    // ============ SERVICES ============
+    async function loadServices() {
+        const data = await callRpc('admin_get_services');
+        document.querySelector('#servicesTable tbody').innerHTML = data.map(s => `
+            <tr>
+                <td>${s.company_name}</td>
+                <td>${s.service_name}</td>
+                <td>${s.icon}</td>
+                <td><button class="action-btn delete" onclick="deleteService(${s.id})"><i class="fas fa-trash"></i></button></td>
+            </tr>
+        `).join('');
+        // Populate dropdown
+        const comps = await callRpc('admin_get_companies');
+        document.getElementById('svcCompany').innerHTML = comps.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+    window.addService = async () => {
+        await callRpc('admin_add_service', {
+            p_company_id: parseInt(document.getElementById('svcCompany').value),
+            p_name: document.getElementById('svcName').value,
+            p_icon: document.getElementById('svcIcon').value,
+            p_image_url: document.getElementById('svcImage').value
+        });
+        loadServices();
+    };
+    window.deleteService = async (id) => { if(confirm('Tirtir?')) { await callRpc('admin_delete_service', { p_id: id }); loadServices(); } };
+
+    // ============ PLANS ============
+    async function loadPlans() {
+        const data = await callRpc('admin_get_plans');
+        document.querySelector('#plansTable tbody').innerHTML = data.map(p => `
+            <tr>
+                <td>${p.service_name}</td>
+                <td>${p.plan_name}</td>
+                <td>$${p.price}</td>
+                <td><button class="action-btn delete" onclick="deletePlan(${p.id})"><i class="fas fa-trash"></i></button></td>
+            </tr>
+        `).join('');
+        const svcs = await callRpc('admin_get_services');
+        document.getElementById('planService').innerHTML = svcs.map(s => `<option value="${s.id}">${s.service_name}</option>`).join('');
+    }
+    window.addPlan = async () => {
+        await callRpc('admin_add_plan', {
+            p_service_id: parseInt(document.getElementById('planService').value),
+            p_name: document.getElementById('planName').value,
+            p_price: parseFloat(document.getElementById('planPrice').value),
+            p_period: document.getElementById('planPeriod').value
+        });
+        loadPlans();
+    };
+    window.deletePlan = async (id) => { if(confirm('Tirtir?')) { await callRpc('admin_delete_plan', { p_id: id }); loadPlans(); } };
+
+    // ============ PAYMENTS ============
+    async function loadPayments() {
+        const data = await callRpc('admin_get_payment_methods');
+        document.querySelector('#paymentsTable tbody').innerHTML = data.map(p => `
+            <tr>
+                <td>${p.id}</td>
+                <td>${p.name}</td>
+                <td>${p.ussd_prefix}</td>
+                <td>${p.is_active?'✅':'❌'}</td>
+                <td>
+                    <button class="action-btn" onclick="togglePayment('${p.id}', ${!p.is_active})"><i class="fas fa-power-off"></i></button>
+                    <button class="action-btn delete" onclick="deletePayment('${p.id}')"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    window.addPayment = async () => {
+        await callRpc('admin_add_payment_method', {
+            p_id: document.getElementById('payId').value,
+            p_name: document.getElementById('payName').value,
+            p_ussd_prefix: document.getElementById('payUssd').value
+        });
+        loadPayments();
+    };
+    window.togglePayment = async (id, status) => { await callRpc('admin_toggle_payment', { p_id: id, p_is_active: status }); loadPayments(); };
+    window.deletePayment = async (id) => { if(confirm('Tirtir?')) { await callRpc('admin_delete_payment', { p_id: id }); loadPayments(); } };
+
+    // ============ CUSTOMERS ============
+    async function loadCustomers() {
+        const data = await callRpc('admin_get_customers');
+        document.querySelector('#customersTable tbody').innerHTML = data.map(c => `
+            <tr>
+                <td>${c.full_name}</td>
+                <td>${c.phone_number}</td>
+                <td>${c.promo_code}</td>
+                <td>${c.is_admin?'✅':''}</td>
+                <td><button class="action-btn" onclick="toggleAdmin('${c.id}', ${!c.is_admin})"><i class="fas fa-user-cog"></i></button></td>
+            </tr>
+        `).join('');
+    }
+    window.toggleAdmin = async (id, is_admin) => {
+        if(confirm('Ma hubtaa?')) { await callRpc('admin_toggle_customer_admin', { p_customer_id: id, p_is_admin: is_admin }); loadCustomers(); }
+    };
+
+    // ============ PROMO POOL ============
+    async function loadPoolStats() {
+        const data = await callRpc('admin_get_promo_pool_stats');
+        if(data && data.length > 0) {
+            document.getElementById('totalCodes').textContent = data[0].total;
+            document.getElementById('availableCodes').textContent = data[0].available;
+        }
+    }
+    window.fillPool = async () => {
+        if(confirm('Buuxi Pool?')) {
+            try {
+                await callRpc('fill_pool_numeric');
+                alert('Pool la buuxiyay!');
+                loadPoolStats();
+            } catch(e) { alert(e.message); }
+        }
+    };
+
+    // TAB SWITCHING
+    document.querySelectorAll('.admin-tab').forEach(t => {
+        t.addEventListener('click', () => {
+            document.querySelectorAll('.admin-tab').forEach(tb => tb.classList.remove('active'));
+            t.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            const tabId = 'tab-' + t.dataset.tab;
+            document.getElementById(tabId).classList.add('active');
+            
+            if (t.dataset.tab === 'orders') loadOrders();
+            else if (t.dataset.tab === 'companies') loadCompanies();
+            else if (t.dataset.tab === 'services') loadServices();
+            else if (t.dataset.tab === 'plans') loadPlans();
+            else if (t.dataset.tab === 'payments') loadPayments();
+            else if (t.dataset.tab === 'customers') loadCustomers();
+            else if (t.dataset.tab === 'promo') loadPoolStats();
+        });
+    });
+
+    // INIT
+    (async () => {
+        if (!await requireAdmin()) return;
+        loadOrders();
+    })();
+</script>
+</body>
+</html>

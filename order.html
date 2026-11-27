@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SAHAN DATA – Iibso Khad & Ku hadal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: radial-gradient(circle at 10% 20%, rgba(61,156,224,0.9), rgba(44,82,130,0.95)); min-height: 100vh; padding: 1rem 1rem 5rem; }
+        .glass { max-width: 950px; margin: 0 auto; background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 2rem; padding: 1rem; }
+        .header { text-align: center; margin-bottom: 1rem; }
+        .header h1 { font-size: 1.8rem; background: linear-gradient(135deg,#FFF,#FFD966); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .header p { color: #ffd966; font-size: 0.9rem; margin-top: 0.2rem; }
+
+        /* Step indicator – midabyo go'an oo kala duwan (4 steps) */
+        .step-indicator { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .step-circle { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; position: relative; color: white; background: rgba(255,255,255,0.2); transition: 0.2s; }
+        .step-circle.active[data-step="1"] { background: #2ecc71; box-shadow: 0 0 10px #2ecc71; }
+        .step-circle.active[data-step="2"] { background: #f1c40f; box-shadow: 0 0 10px #f1c40f; }
+        .step-circle.active[data-step="3"] { background: #3498db; box-shadow: 0 0 10px #3498db; }
+        .step-circle.active[data-step="4"] { background: #e67e22; box-shadow: 0 0 10px #e67e22; }
+        .step-circle::after { content: attr(data-label); position: absolute; bottom: -1.5rem; font-size: 0.7rem; white-space: nowrap; color: #ffd966; font-weight: normal; }
+
+        .step-content { background: rgba(255,255,255,0.95); border-radius: 2rem; padding: 1.5rem; display: none; animation: fade 0.3s; }
+        .step-content.active { display: block; }
+        @keyframes fade { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Custom grid 3 tiir oo kaarar wareegsan */
+        .custom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+        .circle-card { background: rgba(248,249,250,0.9); border-radius: 50%; aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 2px solid transparent; transition: 0.2s; text-align: center; padding: 0.5rem; position: relative; }
+        .circle-card.selected { border-color: currentColor; background: #fff3e0; }
+        .circle-card .icon { font-size: 1.2rem; margin-bottom: 0.2rem; }
+        .circle-card .title { font-weight: bold; font-size: 0.8rem; }
+        .circle-card .price { font-size: 0.7rem; margin-top: 0.2rem; }
+        .circle-card .old-price { text-decoration: line-through; font-size: 0.6rem; margin-right: 0.2rem; }
+        .selected-ring { position: absolute; top: -6px; right: -6px; width: 24px; height: 24px; background: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; display: none; }
+        .circle-card.selected .selected-ring { display: flex; }
+        .feature-badge { font-size: 0.6rem; background: rgba(0,0,0,0.3); border-radius: 1rem; padding: 0.1rem 0.3rem; margin-top: 0.2rem; color: white; }
+
+        /* Step 4 form */
+        .input-group { margin-bottom: 1rem; }
+        .input-group label { display: block; font-weight: 600; margin-bottom: 0.3rem; color: #1e3c72; }
+        .input-group input { width: 100%; padding: 0.8rem; border-radius: 1.2rem; border: 1px solid #ccc; background: white; }
+        .btn { width: 100%; padding: 0.8rem; border-radius: 3rem; font-size: 1rem; font-weight: bold; border: none; cursor: pointer; margin-top: 0.5rem; transition: 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, #f59e0b, #e67e22); color: white; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-back { background: rgba(0,0,0,0.2); color: #1e3c72; }
+        .nav-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .total-box { background: #e8f0fe; padding: 0.8rem; border-radius: 1.2rem; text-align: center; font-weight: bold; margin: 1rem 0; color: #1e3c72; }
+        .success-message { background: #d4edda; color: #155724; padding: 1rem; border-radius: 1rem; text-align: center; margin: 1rem 0; font-weight: bold; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); display: flex; justify-content: space-around; padding: 0.5rem; z-index: 1000; }
+        .nav-item { flex: 1; text-align: center; padding: 0.5rem; color: white; font-size: 0.8rem; cursor: pointer; text-decoration: none; display: block; border-radius: 2rem; }
+        .nav-item i { font-size: 1.2rem; display: block; margin-bottom: 0.2rem; }
+
+        @media (max-width: 640px) {
+            .custom-grid { grid-template-columns: repeat(2, 1fr); }
+            .step-indicator { gap: 1rem; }
+            .step-circle::after { font-size: 0.6rem; bottom: -1.2rem; }
+        }
+
+        /* All text white inside circle cards (except selected bg) */
+        .circle-card { color: white; }
+        .circle-card.selected { color: #1e3c72; background: #fff3e0; }
+        .circle-card.selected .price { color: #28a745; }
+        .circle-card .price, .circle-card .old-price { color: white; }
+        .circle-card.selected .price, .circle-card.selected .old-price { color: #28a745; }
+        .circle-card .feature-badge { background: rgba(0,0,0,0.4); color: white; }
+        .circle-card.selected .feature-badge { background: #eef2ff; color: #1e3c72; }
+    </style>
+</head>
+<body>
+<div class="glass">
+    <div class="header">
+        <h1><i class="fas fa-star"></i> SAHAN DATA <i class="fas fa-star"></i></h1>
+        <p>iibso khad iyo ku hadal</p>
+    </div>
+
+    <!-- 4 steps indicator -->
+    <div class="step-indicator">
+        <div class="step-circle active" data-step="1" data-label="Shirkad">1</div>
+        <div class="step-circle" data-step="2" data-label="Adeeg">2</div>
+        <div class="step-circle" data-step="3" data-label="Qorshe">3</div>
+        <div class="step-circle" data-step="4" data-label="Bixin & Xaqiiji">4</div>
+    </div>
+
+    <!-- Step 1: Shirkadaha -->
+    <div id="step1" class="step-content active">
+        <div class="custom-grid" id="companyGrid"></div>
+        <button class="btn btn-primary" id="nextStep1" disabled>Hore u soco →</button>
+    </div>
+
+    <!-- Step 2: Adeegyada -->
+    <div id="step2" class="step-content">
+        <div class="custom-grid" id="serviceGrid"></div>
+        <div class="nav-buttons"><button class="btn btn-back" id="backStep2">← Dib u noqo</button><button class="btn btn-primary" id="nextStep2" disabled>Hore u soco →</button></div>
+    </div>
+
+    <!-- Step 3: Qorshayaasha (kaliya plans, ma jiraan payment) -->
+    <div id="step3" class="step-content">
+        <div class="custom-grid" id="planGrid"></div>
+        <div class="nav-buttons"><button class="btn btn-back" id="backStep3">← Dib u noqo</button><button class="btn btn-primary" id="nextStep3" disabled>Hore u soco →</button></div>
+    </div>
+
+    <!-- Step 4: Bixinta + macluumaadka + xaqiijin -->
+    <div id="step4" class="step-content">
+        <!-- Payment methods grid -->
+        <div id="paymentMethods" class="custom-grid" style="margin-bottom:1rem;"></div>
+        <!-- Summary of selected plan -->
+        <div id="orderSummary" class="total-box"></div>
+        <!-- Form fields -->
+        <div class="input-group"><label>📞 Lambarka diraya (EVC/eDahab)</label><input type="tel" id="senderPhone" placeholder="Tusaale: 612345678"><div class="error-msg" id="senderError" style="color:red; font-size:0.8rem;"></div></div>
+        <div class="input-group"><label>🎁 Lambarka helaya (hadiyad – ikhtiyaar)</label><input type="tel" id="receiverPhone" placeholder="Lambar ka duwan"></div>
+        <div class="input-group"><label>🏷️ Koodka dalabka (Promo code – ikhtiyaar)</label><input type="text" id="promoCodeInput" placeholder="Koodka saaxiibka"></div>
+        <div class="nav-buttons"><button class="btn btn-back" id="backStep4">← Dib u noqo</button><button class="btn btn-primary" id="confirmOrderBtn">Xaqiiji & iibso</button></div>
+    </div>
+
+    <!-- Fariinta guusha (marka la xaqiijiyo) -->
+    <div id="resultMessage" style="display:none;" class="success-message"></div>
+</div>
+
+<!-- Bottom navigation -->
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Guriga</span></a>
+    <a href="register.html" class="nav-item"><i class="fas fa-user-plus"></i><span>Isdiiwaan</span></a>
+    <a href="login.html" class="nav-item"><i class="fas fa-sign-in-alt"></i><span>Soo gal</span></a>
+    <a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>Liiska guusha</span></a>
+</div>
+
+<script>
+    (function() {
+        // ---------- SUPABASE ----------
+        const SUPABASE_URL = 'https://xccbmivhcbukqyplstae.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjY2JtaXZoY2J1a3F5cGxzdGFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTcyNTIsImV4cCI6MjA4NjkzMzI1Mn0.lGr3cDItP1-LVJgzd5wW5gp0HsGUonuZj-T9qGL2nF0';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Companies with letter, color
+        const companies = [
+            { id: "hormuud", name: "Hormuud", color: "#2e7d32", letter: "H" },
+            { id: "somtel", name: "Somtel", color: "#fbc02d", letter: "T" },
+            { id: "somnet", name: "Somnet", color: "#1976d2", letter: "N" },
+            { id: "amtel", name: "Amtel", color: "#d32f2f", letter: "A" },
+            { id: "somlink", name: "SomLink", color: "#b85c1a", letter: "L" }
+        ];
+
+        const paymentMethods = [
+            { id: "evc", name: "EVC Plus", color: "#2e7d32", ussd_prefix: "*712*612538844*", icon: "💳" },
+            { id: "edahab", name: "eDahab", color: "#fbc02d", ussd_prefix: "*712*622538844*", icon: "💰" },
+            { id: "jeeb", name: "Jeeb", color: "#1976d2", ussd_prefix: "*812*682118366*", icon: "📱" }
+        ];
+
+        // Full plans data (as provided by user – compact but complete)
+        const staticPlans = {
+            hormuud: {
+                services: ["Khad aan xadidneyn", "Ku hadal+GB", "Ku hadal", "ADSL PLUS", "5G", "Codka Hormuud", "Ku hadal bille"],
+                plans: {
+                    "Khad aan xadidneyn": [
+                        { name: "24 saac", old_price: 0.80, price: 0.70, amount_cents: 70, features: "Khad & ku hadal aan xadidneyn", icon: "🕛" },
+                        { name: "7 maalmood", old_price: 5.50, price: 5.00, amount_cents: 500, features: "Khad & ku hadal aan xadidneyn", icon: "🕛" },
+                        { name: "30 maalmood", old_price: 20.00, price: 17.50, amount_cents: 1750, features: "Khad & ku hadal aan xadidneyn", icon: "🕛" }
+                    ],
+                    "Ku hadal+GB": [
+                        { name: "400MB + 10 daqiiqo", price: 0.25, amount_cents: 25, minutes: 10, icon: "🕛📞" },
+                        { name: "850MB + 30 daqiiqo", price: 0.50, amount_cents: 50, minutes: 30, icon: "🕛📞" },
+                        { name: "2GB + 80 daqiiqo", price: 1.00, amount_cents: 100, minutes: 80, icon: "🕛📞" },
+                        { name: "5GB + 160 daqiiqo", price: 2.00, amount_cents: 200, minutes: 160, icon: "🕛📞" },
+                        { name: "12GB + 400 daqiiqo", price: 5.00, amount_cents: 500, minutes: 400, icon: "🕛📞" },
+                        { name: "28GB + 800 daqiiqo", price: 10.00, amount_cents: 1000, minutes: 800, icon: "🕛📞" }
+                    ],
+                    "Ku hadal": [
+                        { name: "8 daqiiqo", old_price: 0.10, price: 0.09, amount_cents: 9, minutes: 8, icon: "📞" },
+                        { name: "40 daqiiqo", old_price: 0.50, price: 0.45, amount_cents: 45, minutes: 40, icon: "📞" },
+                        { name: "80 daqiiqo", old_price: 1.00, price: 0.89, amount_cents: 89, minutes: 80, icon: "📞" },
+                        { name: "400 daqiiqo", old_price: 5.00, price: 4.40, amount_cents: 440, minutes: 400, icon: "📞" }
+                    ],
+                    "ADSL PLUS": [
+                        { name: "ADSL 200 daqiiqo", old_price: 25.00, price: 22.00, amount_cents: 2200, minutes: 200, icon: "📞" },
+                        { name: "ADSL 200 daqiiqo (2)", old_price: 30.00, price: 26.50, amount_cents: 2650, minutes: 200, icon: "📞" },
+                        { name: "ADSL 400 daqiiqo", old_price: 50.00, price: 43.60, amount_cents: 4360, minutes: 400, icon: "📞" },
+                        { name: "ADSL 700 daqiiqo", old_price: 90.00, price: 79.00, amount_cents: 7900, minutes: 700, icon: "📞" }
+                    ],
+                    "5G": [{ name: "5G Khad aan xadidneyn", old_price: 25.00, price: 22.00, amount_cents: 2200, icon: "🕛" }],
+                    "Codka Hormuud": [{ name: "Codka Hormuud", old_price: 0.50, price: 0.43, amount_cents: 43, icon: "📞" }],
+                    "Ku hadal bille": [
+                        { name: "7 maalmood", price: 2.70, amount_cents: 270, icon: "📞" },
+                        { name: "30 maalmood", price: 12.00, amount_cents: 1200, icon: "📞" }
+                    ]
+                }
+            },
+            somtel: {
+                services: ["Khad aan xadidneyn (Dhameeys)", "Abaal GB", "Ku hadal (Kaar)"],
+                plans: {
+                    "Khad aan xadidneyn (Dhameeys)": [
+                        { name: "6 saac", old_price: 0.20, price: 0.18, amount_cents: 18, icon: "🕛" },
+                        { name: "12 saac", old_price: 0.35, price: 0.30, amount_cents: 30, icon: "🕛" },
+                        { name: "24 saac", old_price: 0.70, price: 0.60, amount_cents: 60, features: "Khad, ku hadal & fariimo aan xadidneyn", icon: "🕛" },
+                        { name: "48 saac", old_price: 1.40, price: 1.20, amount_cents: 120, icon: "🕛" },
+                        { name: "7 maalmood", old_price: 4.25, price: 3.70, amount_cents: 370, icon: "🕛" },
+                        { name: "30 maalmood", old_price: 17.50, price: 15.00, amount_cents: 1500, icon: "🕛" }
+                    ],
+                    "Abaal GB": [
+                        { name: "425MB + 12 daqiiqo", old_price: 0.25, price: 0.23, amount_cents: 23, minutes: 12, sms: 10, icon: "📞" },
+                        { name: "1.2GB + 35 daqiiqo", old_price: 0.50, price: 0.45, amount_cents: 45, minutes: 35, sms: 25, icon: "📞" },
+                        { name: "2.5GB + 92 daqiiqo", old_price: 1.00, price: 0.91, amount_cents: 91, minutes: 92, sms: 50, icon: "📞" },
+                        { name: "5.5GB + 184 daqiiqo", old_price: 2.00, price: 1.78, amount_cents: 178, minutes: 184, sms: 100, icon: "📞" },
+                        { name: "13GB + 460 daqiiqo", old_price: 5.00, price: 4.30, amount_cents: 430, minutes: 460, sms: 200, icon: "📞" },
+                        { name: "29GB + 920 daqiiqo", old_price: 10.00, price: 9.00, amount_cents: 900, minutes: 920, sms: 300, icon: "🕛📞" }
+                    ],
+                    "Ku hadal (Kaar)": [
+                        { name: "24 saac", old_price: 0.25, price: 0.22, amount_cents: 22, icon: "🕛" },
+                        { name: "7 maalmood", old_price: 1.50, price: 1.30, amount_cents: 130, icon: "🕛" },
+                        { name: "30 maalmood", old_price: 5.00, price: 4.50, amount_cents: 450, icon: "🕛" }
+                    ]
+                }
+            },
+            somnet: {
+                services: ["Kaafi 829", "Kaafi", "Codka Kaafi", "Qanciye", "Maqsuud"],
+                plans: {
+                    "Kaafi 829": [
+                        { name: "6 saac", old_price: 0.20, price: 0.18, amount_cents: 18, icon: "🕛" },
+                        { name: "12 saac", old_price: 0.25, price: 0.30, amount_cents: 30, icon: "🕛" }
+                    ],
+                    "Kaafi": [
+                        { name: "24 saac", price: 0.70, amount_cents: 70, icon: "🕛" },
+                        { name: "7 maalmood", price: 4.25, amount_cents: 425, icon: "🕛" },
+                        { name: "30 maalmood", price: 17.50, amount_cents: 1750, icon: "🕛" }
+                    ],
+                    "Codka Kaafi": [
+                        { name: "24 saac", old_price: 0.20, price: 0.19, amount_cents: 19, icon: "📞" },
+                        { name: "48 saac", old_price: 0.40, price: 0.36, amount_cents: 36, icon: "📞" },
+                        { name: "7 maalmood", old_price: 1.50, price: 1.30, amount_cents: 130, icon: "📞" },
+                        { name: "30 maalmood", old_price: 5.00, price: 4.50, amount_cents: 450, icon: "📞" }
+                    ],
+                    "Qanciye": [
+                        { name: "1.2GB + 35 daqiiqo", old_price: 0.50, price: 0.45, amount_cents: 45, minutes: 35, icon: "📞" },
+                        { name: "2.5GB + 92 daqiiqo", old_price: 1.00, price: 0.90, amount_cents: 90, minutes: 92, sms: 50, icon: "📞" },
+                        { name: "5.5GB + 184 daqiiqo", old_price: 2.00, price: 1.80, amount_cents: 180, minutes: 184, sms: 100, icon: "📞" },
+                        { name: "8.5GB + 280 daqiiqo", old_price: 3.00, price: 2.70, amount_cents: 270, minutes: 280, sms: 150, icon: "📞" },
+                        { name: "12.75GB + 460 daqiiqo", old_price: 5.00, price: 4.50, amount_cents: 450, minutes: 460, sms: 170, icon: "📞" },
+                        { name: "29GB + 920 daqiiqo", old_price: 10.00, price: 9.00, amount_cents: 900, minutes: 920, sms: 300, icon: "📞" }
+                    ],
+                    "Maqsuud": [
+                        { name: "1.2GB + 11 daqiiqo", old_price: 0.25, price: 0.22, amount_cents: 22, minutes: 11, sms: 10, icon: "📞" },
+                        { name: "34 daqiiqo (kaliya)", old_price: 0.50, price: 0.44, amount_cents: 44, minutes: 34, sms: 25, icon: "📞" },
+                        { name: "2.5GB + 92 daqiiqo", old_price: 1.00, price: 0.89, amount_cents: 89, minutes: 92, sms: 50, icon: "📞" },
+                        { name: "5.5GB + 150 daqiiqo", old_price: 2.00, price: 1.78, amount_cents: 178, minutes: 150, sms: 70, icon: "📞" },
+                        { name: "8.5GB + 280 daqiiqo", old_price: 2.00, price: 2.70, amount_cents: 270, minutes: 280, sms: 150, icon: "📞" },
+                        { name: "12.75GB + 460 daqiiqo", old_price: 5.00, price: 4.50, amount_cents: 450, minutes: 460, sms: 170, icon: "📞" },
+                        { name: "29GB + 920 daqiiqo", old_price: 10.00, price: 9.00, amount_cents: 900, minutes: 920, sms: 300, icon: "📞" }
+                    ]
+                }
+            },
+            amtel: {
+                services: ["Khad aan xadidneyn (Bulaal)", "Tanaad GB"],
+                plans: {
+                    "Khad aan xadidneyn (Bulaal)": [
+                        { name: "10 saac", old_price: 0.25, price: 0.23, amount_cents: 23, icon: "🕛" },
+                        { name: "36 saac", old_price: 0.50, price: 0.46, amount_cents: 46, icon: "🕛" },
+                        { name: "3 maalmood", old_price: 1.00, price: 0.92, amount_cents: 92, icon: "🕛" },
+                        { name: "7 maalmood", old_price: 2.50, price: 2.30, amount_cents: 230, icon: "🕛" },
+                        { name: "30 maalmood", old_price: 10.00, price: 9.00, amount_cents: 900, icon: "🕛" }
+                    ],
+                    "Tanaad GB": [
+                        { name: "2GB + 600 daqiiqo", old_price: 0.50, price: 0.45, amount_cents: 45, minutes: 600, icon: "📞" },
+                        { name: "4GB + 600 daqiiqo", old_price: 1.00, price: 0.90, amount_cents: 90, minutes: 600, icon: "📞" },
+                        { name: "25GB + ku hadal aan xadidneyn", old_price: 5.00, price: 4.50, amount_cents: 450, minutes: "aan xadidneyn", icon: "📞" }
+                    ]
+                }
+            },
+            somlink: {
+                services: ["Khad aan xadidneyn (Promotion)", "Kaafiye"],
+                plans: {
+                    "Khad aan xadidneyn (Promotion)": [
+                        { name: "24 saac", old_price: 0.50, price: 0.45, amount_cents: 45, icon: "🕛" },
+                        { name: "48 saac", old_price: 1.00, price: 0.90, amount_cents: 90, icon: "🕛" },
+                        { name: "7 maalmood", old_price: 2.00, price: 2.70, amount_cents: 270, icon: "🕛" },
+                        { name: "30 maalmood", old_price: 15.00, price: 13.50, amount_cents: 1350, icon: "🕛" }
+                    ],
+                    "Kaafiye": [
+                        { name: "2GB", old_price: 0.50, price: 0.44, amount_cents: 44, icon: "🕛" },
+                        { name: "6GB", old_price: 1.00, price: 0.89, amount_cents: 89, icon: "🕛" }
+                    ]
+                }
+            }
+        };
+
+        let selectedProvider = null, selectedService = null, selectedPlan = null, selectedPayment = null, currentStep = 1;
+        let currentUserId = null;
+        let currentUserPromoCode = null;
+
+        // DOM elements
+        const stepContents = {1: document.getElementById('step1'),2: document.getElementById('step2'),3: document.getElementById('step3'),4: document.getElementById('step4')};
+        const stepCircles = document.querySelectorAll('.step-circle');
+        const companyGrid = document.getElementById('companyGrid');
+        const serviceGrid = document.getElementById('serviceGrid');
+        const planGrid = document.getElementById('planGrid');
+        const paymentDiv = document.getElementById('paymentMethods');
+        const next1 = document.getElementById('nextStep1'), next2 = document.getElementById('nextStep2'), next3 = document.getElementById('nextStep3');
+        const back2 = document.getElementById('backStep2'), back3 = document.getElementById('backStep3'), back4 = document.getElementById('backStep4');
+        const confirmBtn = document.getElementById('confirmOrderBtn');
+        const resultDiv = document.getElementById('resultMessage');
+
+        // Fetch current user (if any) and his promo code
+        async function fetchUser() {
+            const { data: { user } } = await sb.auth.getUser();
+            if (user) {
+                currentUserId = user.id;
+                const { data: cust } = await sb.from('customers').select('promo_code').eq('uid', user.id).maybeSingle();
+                if (cust) currentUserPromoCode = cust.promo_code?.toString();
+            }
+        }
+        fetchUser();
+
+        // Validate promo code: exists and (if logged in) not owned by buyer
+        async function validatePromoCode(promoCode, buyerUserId) {
+            if (!promoCode) return { valid: true };
+            const { data, error } = await sb.from('customers').select('id, promo_code, uid').eq('promo_code', promoCode).maybeSingle();
+            if (error || !data) return { valid: false, message: 'Promo code aan jirin. Fadlan hubi.' };
+            if (buyerUserId) {
+                // Check if the promo code belongs to the logged-in user
+                if (data.uid === buyerUserId) {
+                    return { valid: false, message: "Ma isticmaali kartid promo code-kaaga. Isticmaal mid saaxiibkaaga." };
+                }
+            }
+            return { valid: true };
+        }
+
+        function showStep(step) {
+            for (let i=1;i<=4;i++) if(stepContents[i]) stepContents[i].classList.remove('active');
+            if(stepContents[step]) stepContents[step].classList.add('active');
+            currentStep = step;
+            stepCircles.forEach((circle,idx)=>{ if(idx+1===step) circle.classList.add('active'); else circle.classList.remove('active'); });
+            if(step===1 && next1) updateButtonColor(next1);
+            if(step===2 && next2) updateButtonColor(next2);
+            if(step===3 && next3) updateButtonColor(next3);
+            if(step===4 && confirmBtn) updateButtonColor(confirmBtn);
+        }
+
+        function updateButtonColor(button) {
+            if(selectedProvider && companies.find(c=>c.id===selectedProvider)?.color) {
+                let col = companies.find(c=>c.id===selectedProvider).color;
+                button.style.background = `linear-gradient(135deg, ${col}, ${col}cc)`;
+            } else {
+                button.style.background = "linear-gradient(135deg, #f59e0b, #e67e22)";
+            }
+        }
+
+        function loadCompanies() {
+            companyGrid.innerHTML = '';
+            companies.forEach(comp => {
+                const card = document.createElement('div');
+                card.className = 'circle-card';
+                if(selectedProvider === comp.id) card.classList.add('selected');
+                card.style.backgroundColor = comp.color;
+                card.innerHTML = `<div style="font-size:2rem; font-weight:bold;">${comp.letter}</div><div class="title">${comp.name}</div><div class="selected-ring"><i class="fas fa-check"></i></div>`;
+                card.onclick = () => {
+                    selectedProvider = comp.id;
+                    selectedService = null;
+                    selectedPlan = null;
+                    selectedPayment = null;
+                    loadCompanies();
+                    next1.disabled = false;
+                    updateButtonColor(next1);
+                };
+                companyGrid.appendChild(card);
+            });
+        }
+
+        function loadServices() {
+            if(!selectedProvider) return;
+            const data = staticPlans[selectedProvider];
+            const services = data.services;
+            serviceGrid.innerHTML = '';
+            services.forEach(svc => {
+                const card = document.createElement('div');
+                card.className = 'circle-card';
+                let firstPlan = data.plans[svc]?.[0];
+                let iconChar = firstPlan?.icon || "📡";
+                card.style.backgroundColor = companies.find(c=>c.id===selectedProvider).color;
+                card.innerHTML = `<div class="icon">${iconChar}</div><div class="title">${svc}</div><div class="selected-ring"><i class="fas fa-check"></i></div>`;
+                if(selectedService === svc) { card.classList.add('selected'); card.style.borderColor = 'white'; }
+                card.onclick = () => { selectedService = svc; loadServices(); next2.disabled = false; updateButtonColor(next2); };
+                serviceGrid.appendChild(card);
+            });
+        }
+
+        function loadPlans() {
+            if(!selectedProvider || !selectedService) return;
+            const data = staticPlans[selectedProvider];
+            const plans = data.plans[selectedService];
+            if(!plans) return;
+            planGrid.innerHTML = '';
+            plans.forEach(plan => {
+                const card = document.createElement('div');
+                card.className = 'circle-card';
+                let priceHtml = '';
+                if(plan.old_price) priceHtml = `<div class="price"><span class="old-price">$${plan.old_price.toFixed(2)}</span> $${plan.price.toFixed(2)}</div>`;
+                else priceHtml = `<div class="price">$${plan.price.toFixed(2)}</div>`;
+                let details = plan.features || '';
+                if(plan.minutes) details = `${plan.minutes} daqiiqo`;
+                if(plan.sms) details += ` 🔒${plan.sms}`;
+                card.style.backgroundColor = companies.find(c=>c.id===selectedProvider).color;
+                card.innerHTML = `<div class="icon">${plan.icon}</div><div class="title">${plan.name}</div>${priceHtml}<div class="feature-badge">${details.substring(0,20)}</div><div class="selected-ring"><i class="fas fa-check"></i></div>`;
+                if(selectedPlan && selectedPlan.name === plan.name) { card.classList.add('selected'); card.style.borderColor = 'white'; }
+                card.onclick = () => { selectedPlan = plan; loadPlans(); next3.disabled = false; updateButtonColor(next3); };
+                planGrid.appendChild(card);
+            });
+        }
+
+        function loadPaymentsAndSummary() {
+            paymentDiv.innerHTML = '';
+            paymentMethods.forEach(pm => {
+                const card = document.createElement('div');
+                card.className = 'circle-card';
+                card.style.backgroundColor = pm.color;
+                if(selectedPayment && selectedPayment.id === pm.id) { card.classList.add('selected'); card.style.borderColor = 'white'; }
+                card.innerHTML = `<div class="icon">${pm.icon}</div><div class="title">${pm.name}</div><div class="selected-ring"><i class="fas fa-check"></i></div>`;
+                card.onclick = () => { selectedPayment = pm; loadPaymentsAndSummary(); };
+                paymentDiv.appendChild(card);
+            });
+            updateOrderSummary();
+        }
+
+        function updateOrderSummary() {
+            const summaryDiv = document.getElementById('orderSummary');
+            if(selectedPlan && selectedProvider) {
+                const providerName = companies.find(c=>c.id===selectedProvider).name;
+                summaryDiv.innerHTML = `<strong>Qorshaha la doortay:</strong> ${selectedPlan.name} - $${selectedPlan.price}<br><strong>Shirkad:</strong> ${providerName}`;
+            } else {
+                summaryDiv.innerHTML = 'Marka hore dooro qorshe.';
+            }
+        }
+
+        function validateSomaliPhone(phone) { return /^(\+252|0)?(61|62|63|68|69)[0-9]{7}$/.test(phone); }
+
+        async function createOrder() {
+            if(!selectedPlan || !selectedPayment) {
+                alert('Fadlan dooro qorshe iyo habka bixinta.');
+                return;
+            }
+            const sender = document.getElementById('senderPhone').value.trim();
+            const receiver = document.getElementById('receiverPhone').value.trim() || sender;
+            const promo = document.getElementById('promoCodeInput').value.trim();
+            if(!validateSomaliPhone(sender)) {
+                document.getElementById('senderError').innerText = 'Lambar khaldan (tusaale: 612345678)';
+                return;
+            }
+            document.getElementById('senderError').innerText = '';
+
+            // PROMO CODE VALIDATION (only registered promo codes, cannot use own)
+            if(promo) {
+                const validation = await validatePromoCode(promo, currentUserId);
+                if(!validation.valid) {
+                    alert(validation.message);
+                    return;
+                }
+            }
+
+            // Get product ID (fallback to 0 if not found, but we'll try to fetch)
+            let productId = 0;
+            const { data: prod } = await sb.from('products').select('id').eq('name', selectedPlan.name).eq('provider', selectedProvider).maybeSingle();
+            if(prod) productId = prod.id;
+            else {
+                // Fallback: use plan amount_cents as product id? Not ideal. Better to create temp product.
+                // We'll still proceed with 0, but RPC might fail. We'll assume product exists.
+                console.warn('Product not found in DB, using 0');
+            }
+
+            // Create order using correct RPC
+            const { data, error } = await sb.rpc('create_order', {
+                p_product_id: productId,
+                p_sender_phone: sender,
+                p_receiver_phone: receiver,
+                p_customer_id: currentUserId || null,
+                p_promo_code: promo || null,
+                p_payment_method: selectedPayment.name
+            });
+            if(error) {
+                alert('Order khaldan: ' + error.message);
+                return;
+            }
+            if(!data.success) {
+                alert('Order khaldan: ' + (data.error || 'Unknown error'));
+                return;
+            }
+            const ussd = selectedPayment.ussd_prefix + selectedPlan.amount_cents + '#';
+            resultDiv.innerHTML = "✅ waad ku guulaysatay dalabkaagii, waana la keydiyey ee tuur la lacagta";
+            resultDiv.style.display = "block";
+            setTimeout(() => {
+                window.location.href = `tel:${ussd}`;
+            }, 3000);
+        }
+
+        // Event handlers
+        next1.onclick = () => { loadServices(); showStep(2); };
+        next2.onclick = () => { showStep(3); loadPlans(); };
+        next3.onclick = () => { showStep(4); loadPaymentsAndSummary(); };
+        back2.onclick = () => showStep(1);
+        back3.onclick = () => showStep(2);
+        back4.onclick = () => showStep(3);
+        confirmBtn.onclick = createOrder;
+
+        loadCompanies();
+        showStep(1);
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SAHAN DATA – Soo‑jiidashada & Fursadaha</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+            background: linear-gradient(145deg, #0b2b44 0%, #1a4a6f 100%);
+            color: #1e1e1e;
+            padding: 2rem 1rem 4rem;
+            line-height: 1.5;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        /* Hero */
+        .hero { text-align: center; margin-bottom: 3rem; }
+        .hero h1 { font-size: 3rem; font-weight: 800; color: white; text-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        .hero h1 i { color: #FFD700; margin: 0 0.5rem; }
+        .hero .subtitle { font-size: 1.3rem; color: #ffd966; margin-top: 0.5rem; }
+        .hero p {
+            max-width: 800px; margin: 1.5rem auto 0; color: #cbd5e0; font-size: 1.1rem;
+            background: rgba(255,255,255,0.08); padding: 1.5rem 2rem; border-radius: 1.5rem; backdrop-filter: blur(4px);
+        }
+
+        /* Section titles */
+        .section-title {
+            font-size: 2rem; font-weight: 700; color: white; margin: 2.5rem 0 1.5rem;
+            border-left: 6px solid #FFD700; padding-left: 1.5rem; text-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .section-title i { margin-right: 0.6rem; color: #FFD700; }
+
+        /* Cards */
+        .card { background: white; border-radius: 1.5rem; padding: 1.8rem; box-shadow: 0 20px 35px rgba(0,0,0,0.2); margin-bottom: 2rem; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-4px); }
+
+        /* Features */
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .feature-card { background: white; border-radius: 1.2rem; padding: 1.5rem; box-shadow: 0 6px 15px rgba(0,0,0,0.08); border: 1px solid #edf2f7; }
+        .feature-card h4 { color: #1e3c72; margin-bottom: 0.6rem; font-size: 1.1rem; }
+        .feature-card p { color: #4a5568; font-size: 0.92rem; }
+
+        /* Tables */
+        .table-responsive { overflow-x: auto; border-radius: 1rem; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 1rem; overflow: hidden; }
+        th { background: #1e3c72; color: white; font-weight: 600; padding: 0.9rem; text-align: left; font-size: 0.9rem; }
+        td { padding: 0.9rem; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; color: #2d3748; }
+        tr:last-child td { border-bottom: none; }
+        .highlight { background: #fefcbf; font-weight: 600; border-radius: 1rem; padding: 0.2rem 0.6rem; display: inline-block; }
+
+        /* Promo highlight */
+        .promo-highlight {
+            background: linear-gradient(135deg, #f6e05e, #ed8936); color: #1a202c;
+            padding: 1.5rem; border-radius: 1rem; text-align: center; font-weight: bold; font-size: 1.2rem; margin: 1.5rem 0;
+        }
+
+        /* Competition list */
+        .competition-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .competition-item { background: white; border-radius: 1rem; padding: 1rem; display: flex; align-items: center; gap: 0.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .competition-item i { font-size: 1.6rem; color: #f59e0b; }
+
+        /* Call to action */
+        .cta { text-align: center; margin-top: 2.5rem; background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 2rem; padding: 2rem; }
+        .cta p { color: #ffd966; font-size: 1.4rem; font-weight: bold; margin-bottom: 0.5rem; }
+
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2.2rem; }
+            .section-title { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- ==================== HORDHAC ==================== -->
+    <div class="hero">
+        <h1><i class="fa-star"></i> SAHAN DATA <i class=" fa-star"></i></h1>
+        <div class="subtitle">Madasha Suuq‑geynta & Isku‑xidhka</div>
+        <p>
+            <strong>SAHAN</strong> waa madal dhijitaal ah, oo si online wax looga iibsado.
+            Waxaana ku midaysan <strong>boqolaal kun oo dhalinyaro iyo arday ah</strong> oo kuu balan‑qaadaysa iney si toos ah oo maalinle ah u isticmaali doonaan adeegyadaada ganacsiga,
+            una tababaran iney fidiyaan oo ay gaarsiiyaan qeybaha bulshada adeegyada shirkadaha.
+            Waxaan diyaar u nahay isticmaalida adeegyadaada ganacsiga, kobcinta iibka & hormarinta dakhli shirkadaha.
+        </p>
+    </div>
+
+    <!-- ==================== FURSADAHA SHIRKADAHA ==================== -->
+    <div class="section-title"><i class="fas fa-building"></i> Fursadaha Shirkadaha</div>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h4>🔗 Isku‑xidhka Macaamiisha</h4>
+            <p>SAHAN waa guri ay ku midaysan yihiin kumanaan macaamiil. Markaad partner noqoto, waxaad kuu bilaaban in gumaan macaamiil cusub ah ay si joogto ah u iibsadaan oo u isticmaalaan adeegaaga.</p>
+        </div>
+        <div class="feature-card">
+            <h4>💰 Nidaamka soo‑jiidashada</h4>
+            <p>Kumaanka macaamiisha ah ee ka tirsan SAHAN, waxay leeyihiin linki tixraac ah oo ay si maalinle ah ugu diiwaangeliyaan macaamiil cusub, si loo gaaro malaayiin si mideysan uga shaqeynaysa hormarinta adeegaaga.</p>
+        </div>
+        <div class="feature-card">
+            <h4>📈 Kobcinta Iibka Adeegyada</h4>
+            <p>Interface‑ka 5 tallaabo wuxuu yareeyaa caqabadaha, macaamiishuna si fudud ayey u iibsadaan. Natiijadu waa iib joogto ah oo kordha.</p>
+        </div>
+        <div class="feature-card">
+            <h4>📢 Xayeysiinta Shirkadaha</h4>
+            <p>SAHAN waa billboard dhijitaal ah oo bilaash ah. Sumcaddaada, adeegyadaada, iyo qiimahaaga ayaa si toos ah loogu soo bandhigaa kumanaan macaamiil ah.</p>
+        </div>
+    </div>
+
+    <!-- ==================== IIB CODE (PROMO CODE) ==================== -->
+    <div class="promo-highlight">
+        🔢 <strong>Iib Code (Koodhka Iibka)</strong> – Waa furahaaga guusha! Macmiil walba wuxuu helaa 4‑gidit u gaar ah. Si aad uga mid noqotid ganacsiyada guulaystay, oo aad nolol fiican u hesho, waa inaad aqbashaa in lambarka iib loo isticmaalo adeegyadaada – tanina waa mida xiisaha u yeelaysa, ee noo sahlaysa inaan si fudud u hormarino adeegyadaada.
+    </div>
+
+    <!-- ==================== 6 NOOC OO TRANSACTION ==================== -->
+    <h3 style="color:white; margin-top:1.5rem;">💸 6 Nooc oo Transaction ah (Faa'iidooyinkaaga)</h3>
+    <div class="table-responsive" style="margin-top: 1rem;">
+        <table>
+            <thead>
+                <tr><th>🧾 Nooca Transactions</th><th>❓ Waa maxay?</th><th>🎁 Faa’iidada</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>🧑 <strong>Buyer</strong></td><td>Marka aad adigu iibsato xidhmo.</td><td>Waxay ku tirisaa iibkaaga, oo kaa dhigaysa mid u tartamaya <span class="highlight">Monthly Top Sellers</span>.</td></tr>
+                <tr><td>🏘️ <strong>District</strong></td><td>Degmadaada ayaa lala xisaabtamayaa.</td><td>Guusha degmada waa guushaada – dhammaan dadka degmada ayaa hela abaalmarin wadareed.</td></tr>
+                <tr><td>👥 <strong>Group</strong></td><td>Kooxdaada (A–Y) ayaa lala tartamayaa.</td><td>Marka kooxdaadu guuleysato, dhammaan xubnaha ayaa hela bonus‑points ama faa’iido kale.</td></tr>
+                <tr><td>🏫 <strong>School</strong></td><td>Iskuulka aad dhigato ayaa la tartansiinayaa.</td><td>Guusha iskuulka waa mid wadaag ah – ardayda ayaa hela dhiirrigelin dheeri ah.</td></tr>
+                <tr><td>🔗 <strong>Referral</strong></td><td>Marka qof cusub uu isdiiwaangaliyo adigoo isticmaalaya <em>referral code‑kaaga</em>.</td><td>Waxaad heleysaa dhibco soo‑jiidasho, oo kuu furaysa fursad <span class="highlight">Weekly Top Referrers</span>.</td></tr>
+                <tr><td>🏷️ <strong>Promo</strong></td><td>Marka qof kale isticmaalo <em>promo code‑kaaga</em> marka uu iibsanayo.</td><td>Kani waa kan ugu faa’iidada badan – isticmaal kasta wuxuu kaa dhigayaa mid u tartamaya <span class="highlight">Monthly Most Promoted</span>.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ==================== 6 TARTAN ==================== -->
+    <h3 style="color:white; margin-top:2rem;">🏆 6 Tartan & Abaalmarin Dheeri ah</h3>
+    <div class="competition-list">
+        <div class="competition-item"><i class="fas fa-medal"></i> Toddobaadlaha Soo‑jiidashada (guulaystuhu waa 1)</div>
+        <div class="competition-item"><i class="fas fa-trophy"></i> Bishii Iibiyaha Ugu Sarreeya (bil kasta guulaystuhu waa 1)</div>
+        <div class="competition-item"><i class="fas fa-bullhorn"></i> Bishii Promo‑code Ugu Isticmaalka Badan (guulaystuhu 1)</div>
+        <div class="competition-item"><i class="fas fa-city"></i> Degmada Sanadka (1 degmo) – dhamaan xubnuhu waxay helaan abaalmarin wadareed</div>
+        <div class="competition-item"><i class="fas fa-layer-group"></i> Kooxda Sanadka (1 koox) – dhamaan xubnuhu waxay helaan abaalmarin</div>
+        <div class="competition-item"><i class="fas fa-school"></i> Iskuulka Sanadka (1 iskuul) – dhamaan xubnuhu waxay helaan abaalmarin</div>
+    </div>
+    <p style="color:#e2e8f0; margin-top:0.5rem;">
+        Guuleystayaasha waxaa la siiyaa <strong>bonus points</strong> iyo <strong>abaalmarin lacageed</strong> (xidhmo bilaash ah, airtime).
+        Haddii degmadaada, kooxdaada, ama iskuulkaaga ay guuleystaan, adigana waa lagu soo darayaa faa'iidada.
+    </p>
+
+    <!-- ==================== FURSADAHA MAALGASHIGA ==================== -->
+    <div class="section-title"><i class="fas fa-chart-line"></i> Fursadaha Maalgashiga</div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr><th>🏦 Qodobka Maalgashiga</th><th>🌍 Faa’iidada iyo Suurtagalka</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>📈 Suuq Weyn oo Ballaadhan</strong></td><td>Soomaaliya waxaa ku nool 18+ milyan oo qof, iibka xidhmadana waa baahi maalinle ah – suuqa sanadkiiba waxaa lagu qiyaasaa $100 milyan. SAHAN waxay u diyaar garoobtay qayb weyn.</td></tr>
+                <tr><td><strong>⚡ Helitaan Degdeg ah oo Fudud</strong></td><td>Cloud‑based, shaqeeya taleefan kasta. Ma jiraan carqalado – macaamiishu way sii kordhayaan.</td></tr>
+                <tr><td><strong>🔄 Dakhli Joogto ah</strong></td><td>Iibsiga maalinlaha ah wuxuu hubiyaa dakhli la saadaalin karo.</td></tr>
+                <tr><td><strong>🛡️ Kharash Hoose, Khatar Yar</strong></td><td>SAHAN waxay ku shaqeysaa "pay‑as‑you‑grow" – ma jiraan lacag hore laga bixiyo.</td></tr>
+                <tr><td><strong>🏆 Nidaamka Soo‑jiidashada & Abaalmarinta</strong></td><td>Macaamiishu waxay noqdaan iibiye, taas oo abuureysa mashiin suuq‑geyn iskii u shaqeeya oo bilaash ah.</td></tr>
+                <tr><td><strong>🤝 Iskaashi Daryeelaya</strong></td><td>Waxaan bixinaa warbixin faahfaahsan iyo support joogto ah si maalgashiga uu u kobco.</td></tr>
+                <tr><td><strong>🌐 Mustaqbalka</strong></td><td>Waxaan u soconaa inaan kaa qaadono shirkad local ah oon ku gaarsiino shirkad caalami ah.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Call to action -->
+    <div class="cta">
+        <p>🌟 SAHAN DATA – Ku soo biir xidigaha suuq‑geynta!</p>
+        <p style="font-size:1rem; color:#cbd5e0;">Waa madasha suuqgeynta ugu balaadhan abid ee Somalia ah. <em>(share is better than give)</em></p>
+    </div>
+</div>
+</body>
+</html>

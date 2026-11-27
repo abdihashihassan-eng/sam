@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>SAHAN DATA · Iibso</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: linear-gradient(145deg, #3d9ce0 0%, #73c2f0 100%); min-height: 100vh; padding: 2rem 1rem 5rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .title-section { text-align: center; margin-bottom: 1.5rem; }
+        .title-section h1 { font-size: 2.5rem; color: #1e1e1e; font-weight: 700; letter-spacing: 1px; }
+        .title-section h1 i { color: #FFD700; margin: 0 8px; font-size: 2.2rem; }
+        .title-section p { color: #ffd966; }
+        
+        .nav-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 2rem; }
+        .nav-tabs a { background: white; color: #1e3c72; text-decoration: none; padding: 0.3rem 0.8rem; border-radius: 2rem; font-size: 0.7rem; font-weight: 600; transition: 0.2s; }
+        .nav-tabs a:hover { background: #ffd966; }
+        
+        .card { background: white; border-radius: 2rem; padding: 1.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        
+        .step-indicator { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .step-circle { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; position: relative; color: white; background: rgba(0,0,0,0.2); transition: 0.2s; }
+        .step-circle.active[data-step="1"] { background: #2ecc71; box-shadow: 0 0 12px #2ecc71; }
+        .step-circle.active[data-step="2"] { background: #f1c40f; box-shadow: 0 0 12px #f1c40f; }
+        .step-circle.active[data-step="3"] { background: #3498db; box-shadow: 0 0 12px #3498db; }
+        .step-circle.active[data-step="4"] { background: #e67e22; box-shadow: 0 0 12px #e67e22; }
+        .step-circle.active[data-step="5"] { background: #9b59b6; box-shadow: 0 0 12px #9b59b6; }
+        .step-circle::after { content: attr(data-label); position: absolute; bottom: -1.8rem; font-size: 0.65rem; white-space: nowrap; color: #ffd966; font-weight: 500; }
+        
+        /* SHIRKADAHA */
+        .grid-ops { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+        .op-card { background: white; border-radius: 1.2rem; padding: 1.5rem 1rem; text-align: center; cursor: pointer; border: 2px solid #e9ecef; transition: 0.2s; }
+        .op-card.selected { border-color: #0d8a41; background: #f0fff4; }
+        .op-logo { width: 60px; height: 60px; margin: 0 auto 10px; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: 900; border-radius: 12px; position: relative; }
+        .op-name { font-weight: 800; font-size: 15px; color: #1e3c72; }
+        .selected-ring { position: absolute; top: -6px; right: -6px; width: 28px; height: 28px; background: #0d8a41; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; display: none; }
+        .op-card.selected .selected-ring { display: flex; }
+
+        /* ADEEGYADA */
+        .grid-cats { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+        .cat-card { background: #00a651; border-radius: 1.2rem; cursor: pointer; text-align: center; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem 1.5rem; transition: 0.2s; position: relative; border: 2px solid transparent; }
+        .cat-card.selected { border-color: #1e3c72; transform: scale(0.98); }
+        .cat-img { color: white; font-size: 40px; margin-bottom: 10px; }
+        .cat-name { font-weight: 700; color: white; font-size: 15px; }
+        .cat-selected-ring { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00a651; font-size: 0.7rem; display: none; }
+        .cat-card.selected .cat-selected-ring { display: flex; }
+
+        /* QORSHAYAASHA & BIXINTA */
+        .custom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.5rem 0; }
+        .circle-card { background: white; border-radius: 1.5rem; aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #e9ecef; transition: 0.2s; text-align: center; padding: 0.8rem; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .circle-card.selected { border-color: #2e7d32; background: #f0fff4; }
+        .circle-card img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-bottom: 0.5rem; }
+        .circle-card .icon { font-size: 2rem; margin-bottom: 0.3rem; }
+        .circle-card .title { font-weight: 700; font-size: 0.85rem; color: #1e3c72; }
+        .circle-card .price { font-size: 1rem; font-weight: bold; margin-top: 0.3rem; color: #f59e0b; }
+        .circle-card .old-price { font-size: 0.7rem; text-decoration: line-through; color: #6c757d; }
+        .circle-selected-ring { position: absolute; top: -6px; right: -6px; width: 28px; height: 28px; background: #2e7d32; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; display: none; }
+        .circle-card.selected .circle-selected-ring { display: flex; }
+        .feature-badge { font-size: 0.65rem; background: #e9ecef; border-radius: 1rem; padding: 0.2rem 0.6rem; margin-top: 0.3rem; color: #1e3c72; font-weight: 500; }
+        
+        .input-group { margin-bottom: 1.2rem; }
+        .input-group label { display: block; font-weight: 600; margin-bottom: 0.3rem; color: #1e3c72; font-size: 0.85rem; }
+        .input-group input { width: 100%; padding: 0.9rem; border: 2px solid #e9ecef; border-radius: 1.5rem; font-size: 1rem; background: white; }
+        .btn { padding: 0.9rem 1.5rem; border-radius: 3rem; font-size: 1rem; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, #f59e0b, #e67e22); color: white; width: 100%; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-back { background: #e9ecef; color: #1e3c72; flex: 1; width: 100%; margin-bottom: 0.5rem; }
+        .nav-buttons { margin-top: 1.5rem; display: flex; flex-direction: column; }
+        .total-box { background: #f8f9fa; padding: 1rem; border-radius: 1.5rem; text-align: center; font-weight: bold; margin: 1rem 0; color: #1e3c72; }
+        .success-message { background: #d4edda; color: #155724; padding: 1rem; border-radius: 1.5rem; text-align: center; margin: 1rem 0; font-weight: bold; }
+        .error-msg { color: #e74c3c; font-size: 0.8rem; margin-top: 0.2rem; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 20px; border-top: 1px solid #eef2f6; backdrop-filter: blur(10px); background: rgba(255,255,255,0.95); z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 0.8rem; text-decoration: none; cursor: pointer; }
+        .nav-item.active { color: #2e7d32; font-weight: 600; }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 0.2rem; }
+        .menu-panel { position: fixed; bottom: 4.5rem; left: 0; right: 0; background: rgba(30, 30, 40, 0.95); backdrop-filter: blur(20px); border-radius: 1.5rem 1.5rem 0 0; padding: 1rem; display: none; flex-direction: column; gap: 0.5rem; z-index: 999; max-height: 60vh; overflow-y: auto; }
+        .menu-panel.show { display: flex; }
+        .menu-section h4 { color: #ffd966; font-size: 0.8rem; margin-bottom: 0.3rem; border-left: 3px solid #f59e0b; padding-left: 0.5rem; }
+        .menu-link { display: block; color: white; text-decoration: none; padding: 0.5rem 0.8rem; font-size: 0.85rem; border-radius: 1rem; transition: 0.2s; }
+        .menu-link:hover { background: rgba(255,255,255,0.1); }
+        .close-menu { text-align: right; padding: 0.2rem; color: #ffd966; font-size: 0.7rem; cursor: pointer; }
+        
+        @media (max-width: 640px) { 
+            .custom-grid { grid-template-columns: repeat(2, 1fr); } 
+            .step-indicator { gap: 0.5rem; } 
+            .step-circle::after { font-size: 0.55rem; } 
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="title-section">
+        <h1><i class="fas fa-satellite-dish"></i> SAHAN DATA <i class="fas fa-star"></i></h1>
+        <p>5 tallaabo · iibso khad & ku hadal</p>
+    </div>
+
+    <div class="nav-tabs">
+        <a href="index.html">Home</a>
+        <a href="leaderboard.html">Leaderboard</a>
+    </div>
+
+    <div class="card">
+        <div class="step-indicator">
+            <div class="step-circle active" data-step="1" data-label="Shirkad">1</div>
+            <div class="step-circle" data-step="2" data-label="Adeeg">2</div>
+            <div class="step-circle" data-step="3" data-label="Qorshe">3</div>
+            <div class="step-circle" data-step="4" data-label="Bixin">4</div>
+            <div class="step-circle" data-step="5" data-label="Xaqiiji">5</div>
+        </div>
+
+        <!-- STEP 1: SHIRKADAHA (Auto-advance) -->
+        <div id="step1" class="step-content">
+            <div class="grid-ops" id="companyGrid"></div>
+        </div>
+
+        <!-- STEP 2: ADEEGYADA (Auto-advance) -->
+        <div id="step2" class="step-content" style="display:none;">
+            <div class="grid-cats" id="serviceGrid"></div>
+            <div class="nav-buttons"><button class="btn btn-back" id="backStep2">← Dib</button></div>
+        </div>
+
+        <!-- STEP 3: QORSHAYAASHA (Auto-advance) -->
+        <div id="step3" class="step-content" style="display:none;">
+            <div class="custom-grid" id="planGrid"></div>
+            <div class="nav-buttons"><button class="btn btn-back" id="backStep3">← Dib</button></div>
+        </div>
+
+        <!-- STEP 4: BIXINTA (Auto-advance) -->
+        <div id="step4" class="step-content" style="display:none;">
+            <div class="custom-grid" id="paymentMethodsGrid"></div>
+            <div class="nav-buttons"><button class="btn btn-back" id="backStep4">← Dib</button></div>
+        </div>
+
+        <!-- STEP 5: XAQIIJINTA -->
+        <div id="step5" class="step-content" style="display:none;">
+            <div id="orderSummary" class="total-box"></div>
+            <div class="input-group">
+                <label><i class="fas fa-phone"></i> Lambarkaaga (diraya) *</label>
+                <input type="tel" id="customerPhone" placeholder="61xxxxxxx">
+                <div id="phoneError" class="error-msg"></div>
+            </div>
+            <div class="input-group">
+                <label><i class="fas fa-gift"></i> Lambarka helaya (ikhtiyaar)</label>
+                <input type="tel" id="receiverPhone" placeholder="Haddii hadiyad tahay">
+            </div>
+            <div class="input-group">
+                <label><i class="fas fa-tag"></i> Promo Code (4-gidit numeric, ikhtiyaar)</label>
+                <input type="text" id="promoCode" maxlength="4" placeholder="Tusaale: 1024">
+                <div id="promoError" class="error-msg"></div>
+            </div>
+            <div class="nav-buttons">
+                <button class="btn btn-back" id="backStep5">← Dib</button>
+                <button class="btn btn-primary" id="confirmOrderBtn" style="margin-top:0.5rem;">Xaqiiji & Iibso</button>
+            </div>
+        </div>
+
+        <div id="resultMessage" style="display:none;" class="success-message"></div>
+    </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item active"><i class="fas fa-home"></i><span>Home</span></a>
+    <a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>Leaderboard</span></a>
+    <div class="nav-item" id="accountBtn"><i class="fas fa-user-circle"></i><span>Account</span></div>
+    <div class="nav-item" id="moreBtn"><i class="fas fa-ellipsis-h"></i><span>More</span></div>
+</div>
+
+<div id="accountMenu" class="menu-panel">
+    <div class="close-menu" onclick="closeAllMenus()"><i class="fas fa-times"></i> Xidh</div>
+    <div class="menu-section"><h4><i class="fas fa-key"></i> Authentication</h4>
+        <a href="login.html" class="menu-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <a href="register.html" class="menu-link"><i class="fas fa-user-plus"></i> Register</a>
+    </div>
+    <div id="loggedInAccountSection" class="menu-section" style="display:none;">
+        <h4><i class="fas fa-user"></i> My Profile</h4>
+        <a href="dashboard.html" class="menu-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="order-history.html" class="menu-link"><i class="fas fa-history"></i> My Orders</a>
+        <a href="referrals.html" class="menu-link"><i class="fas fa-users"></i> My Referrals</a>
+    </div>
+</div>
+
+<div id="moreMenu" class="menu-panel">
+    <div class="close-menu" onclick="closeAllMenus()"><i class="fas fa-times"></i> Xidh</div>
+    <div class="menu-section"><h4><i class="fas fa-info-circle"></i> Info</h4>
+        <a href="privacy.html" class="menu-link">Privacy</a>
+        <a href="terms.html" class="menu-link">Terms</a>
+        <a href="faq.html" class="menu-link">FAQ</a>
+    </div>
+    <div id="adminSection" class="menu-section" style="display:none;">
+        <h4><i class="fas fa-crown"></i> Admin</h4>
+        <a href="admin.html" class="menu-link"><i class="fas fa-lock"></i> Admin Panel</a>
+    </div>
+</div>
+
+<script>
+    (function(){
+        const SUPABASE_URL = 'https://xccbmivhcbukqyplstae.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjY2JtaXZoY2J1a3F5cGxzdGFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTcyNTIsImV4cCI6MjA4NjkzMzI1Mn0.lGr3cDItP1-LVJgzd5wW5gp0HsGUonuZj-T9qGL2nF0';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentStep = 1;
+        let selectedCompany = null, selectedService = null, selectedPlan = null, selectedPayment = null;
+        let currentUser = null;
+        let companies = [], paymentMethods = [];
+
+        const stepContents = [document.getElementById('step1'), document.getElementById('step2'), document.getElementById('step3'), document.getElementById('step4'), document.getElementById('step5')];
+        const stepCircles = document.querySelectorAll('.step-circle');
+        const companyGrid = document.getElementById('companyGrid');
+        const serviceGrid = document.getElementById('serviceGrid');
+        const planGrid = document.getElementById('planGrid');
+        const paymentGrid = document.getElementById('paymentMethodsGrid');
+        
+        // Badhamada "Dib" oo keliya ayaa hadda jira
+        const back2 = document.getElementById('backStep2');
+        const back3 = document.getElementById('backStep3');
+        const back4 = document.getElementById('backStep4');
+        const back5 = document.getElementById('backStep5');
+        
+        const confirmBtn = document.getElementById('confirmOrderBtn');
+        const resultDiv = document.getElementById('resultMessage');
+
+        async function fetchCompanies() { const { data } = await sb.from('companies').select('*').order('name'); companies = data || []; }
+        async function fetchServices(companyId) { const { data } = await sb.from('services').select('*').eq('company_id', companyId); return data || []; }
+        async function fetchPlans(serviceId) { const { data } = await sb.from('plans').select('*').eq('service_id', serviceId); return data || []; }
+        async function fetchPaymentMethods() { const { data } = await sb.from('payment_methods').select('*').eq('is_active', true); paymentMethods = data || []; }
+
+        // --- RENDER SHIRKADAHA ---
+        function renderCompanies() {
+            companyGrid.innerHTML = '';
+            companies.forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'op-card' + (selectedCompany?.id === c.id ? ' selected' : '');
+                
+                let logoHtml = c.logo_url 
+                    ? `<img src="${c.logo_url}" style="width:100%; height:100%; object-fit:contain;">` 
+                    : c.letter || c.name.charAt(0);
+                
+                card.innerHTML = `
+                    <div class="op-logo" style="background:${c.color || '#e8f5e9'}; color:${c.color ? 'white' : '#0d8a41'}; border: 3px solid ${c.color || '#0d8a41'};">
+                        ${logoHtml}
+                        <div class="selected-ring"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="op-name">${c.name}</div>
+                `;
+                // AUTO-ADVANCE: Marka la gujiyo isla markiiba wuu gudbayaa
+                card.onclick = () => { selectedCompany = c; selectedService = null; selectedPlan = null; renderCompanies(); showStep(2); };
+                companyGrid.appendChild(card);
+            });
+        }
+
+        // --- RENDER ADEEGYADA ---
+        async function renderServices() {
+            if (!selectedCompany) return;
+            const services = await fetchServices(selectedCompany.id);
+            serviceGrid.innerHTML = '';
+            services.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'cat-card' + (selectedService?.id === s.id ? ' selected' : '');
+                
+                card.innerHTML = `
+                    <div class="cat-img">${s.icon || '<i class="fa-solid fa-mobile-screen"></i>'}</div>
+                    <div class="cat-name">${s.name}</div>
+                    <div class="cat-selected-ring"><i class="fas fa-check"></i></div>
+                `;
+                // AUTO-ADVANCE
+                card.onclick = () => { selectedService = s; selectedPlan = null; renderServices(); showStep(3); };
+                serviceGrid.appendChild(card);
+            });
+        }
+
+        // --- RENDER QORSHAYAASHA ---
+        async function renderPlans() {
+            if (!selectedService) return;
+            const plans = await fetchPlans(selectedService.id);
+            planGrid.innerHTML = '';
+            plans.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'circle-card' + (selectedPlan?.id === p.id ? ' selected' : '');
+                let details = [];
+                if (p.period) details.push(p.period);
+                if (p.minutes) details.push(`${p.minutes} min`);
+                if (p.data_amount) details.push(p.data_amount);
+                
+                card.innerHTML = `
+                    ${p.image_url ? `<img src="${p.image_url}">` : `<div class="icon">${p.icon || '🕛'}</div>`}
+                    <div class="title">${p.name}</div>
+                    <div class="price">$${p.price}</div>
+                    ${p.old_price ? `<div class="old-price">$${p.old_price}</div>` : ''}
+                    <div class="feature-badge">${details.join(' · ')}</div>
+                    <div class="circle-selected-ring"><i class="fas fa-check"></i></div>
+                `;
+                // AUTO-ADVANCE
+                card.onclick = () => { selectedPlan = p; renderPlans(); showStep(4); };
+                planGrid.appendChild(card);
+            });
+        }
+
+        // --- RENDER BIXINTA ---
+        function renderPayments() {
+            paymentGrid.innerHTML = '';
+            paymentMethods.forEach(pm => {
+                const card = document.createElement('div');
+                card.className = 'circle-card' + (selectedPayment?.id === pm.id ? ' selected' : '');
+                card.innerHTML = `
+                    ${pm.logo_url ? `<img src="${pm.logo_url}">` : `<div class="icon">💳</div>`}
+                    <div class="title">${pm.name}</div>
+                    <div class="circle-selected-ring"><i class="fas fa-check"></i></div>
+                `;
+                // AUTO-ADVANCE
+                card.onclick = () => { selectedPayment = pm; renderPayments(); showStep(5); };
+                paymentGrid.appendChild(card);
+            });
+        }
+
+        function updateOrderSummary() {
+            const summary = document.getElementById('orderSummary');
+            if (selectedPlan && selectedCompany) {
+                summary.innerHTML = `<strong>${selectedPlan.name}</strong><br>Shirkad: ${selectedCompany.name}<br>Qiimaha: $${selectedPlan.price} · ${selectedPlan.period || ''}`;
+            } else summary.innerHTML = 'Marka hore dooro qorshe.';
+        }
+
+        function showStep(step) {
+            stepContents.forEach((el, idx) => { if (el) el.style.display = (idx+1 === step) ? 'block' : 'none'; });
+            stepCircles.forEach((el, idx) => { el.classList.toggle('active', idx+1 === step); });
+            currentStep = step;
+            if (step === 2) renderServices();
+            if (step === 3) renderPlans();
+            if (step === 4) renderPayments();
+            if (step === 5) updateOrderSummary();
+        }
+
+        // Badhamada Dib
+        back2.onclick = () => showStep(1);
+        back3.onclick = () => showStep(2);
+        back4.onclick = () => showStep(3);
+        back5.onclick = () => showStep(4);
+
+        async function submitOrder() {
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            const receiver = document.getElementById('receiverPhone').value.trim() || null;
+            const promo = document.getElementById('promoCode').value.trim() || null;
+            
+            const phoneRegex = /^6[12389]\d{7}$/;
+            if (!phoneRegex.test(customerPhone)) {
+                document.getElementById('phoneError').innerText = 'Lambar khaldan (10 lambar, bilow 61/62/63/68/69)';
+                return;
+            }
+            document.getElementById('phoneError').innerText = '';
+            
+            // Validation-ka Promo Code-ka (Siyaasadda Cusub: 4-gidit numeric)
+            if (promo) {
+                const promoRegex = /^\d{4}$/;
+                if (!promoRegex.test(promo)) {
+                    document.getElementById('promoError').innerText = 'Promo code waa inuu ahaadaa 4-gidit tiro (tusaale: 1024)';
+                    return;
+                }
+            }
+            document.getElementById('promoError').innerText = '';
+
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Processing...';
+            
+            try {
+                const { data, error } = await sb.rpc('create_order', {
+                    p_customer_phone: customerPhone,
+                    p_product_id: selectedPlan.id,
+                    p_promo_code: promo,
+                    p_payment_method_id: selectedPayment.id,
+                    p_receiver_phone: receiver
+                });
+                
+                if (error) throw error;
+
+                const correctUssd = data.ussd_code;
+                resultDiv.innerHTML = `✅ Dalabkaagii wuu guulaystay, waana la keediyey. Fadlan dir lacagta<br>📞 USSD: ${correctUssd}`;
+                resultDiv.style.display = 'block';
+
+                setTimeout(() => {
+                    const telLink = `tel:${correctUssd.replace(/\*/g, '%2A').replace(/#/g, '%23')}`;
+                    window.location.href = telLink;
+                    
+                    setTimeout(() => {
+                        selectedCompany = selectedService = selectedPlan = selectedPayment = null;
+                        showStep(1);
+                        renderCompanies();
+                        resultDiv.style.display = 'none';
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = 'Xaqiiji & Iibso';
+                        document.getElementById('customerPhone').value = '';
+                        document.getElementById('receiverPhone').value = '';
+                        document.getElementById('promoCode').value = '';
+                    }, 2000);
+                }, 3000);
+                
+            } catch (err) {
+                alert('Qalad: ' + err.message);
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Xaqiiji & Iibso';
+            }
+        }
+        confirmBtn.onclick = submitOrder;
+
+        async function checkAuth() {
+            const { data: { user } } = await sb.auth.getUser();
+            currentUser = user;
+            if (user) {
+                document.getElementById('loggedInAccountSection').style.display = 'block';
+                const { data: cust } = await sb.from('customers').select('is_admin').eq('uid', user.id).maybeSingle();
+                if (cust?.is_admin) document.getElementById('adminSection').style.display = 'block';
+            }
+        }
+
+        function closeAllMenus() {
+            document.getElementById('accountMenu').classList.remove('show');
+            document.getElementById('moreMenu').classList.remove('show');
+        }
+        document.getElementById('accountBtn').onclick = (e) => { e.stopPropagation(); closeAllMenus(); document.getElementById('accountMenu').classList.toggle('show'); };
+        document.getElementById('moreBtn').onclick = (e) => { e.stopPropagation(); closeAllMenus(); document.getElementById('moreMenu').classList.toggle('show'); };
+        document.addEventListener('click', (e) => { if (!e.target.closest('.bottom-nav') && !e.target.closest('.menu-panel')) closeAllMenus(); });
+        window.closeAllMenus = closeAllMenus;
+
+        (async function init() {
+            await checkAuth();
+            await fetchCompanies();
+            await fetchPaymentMethods();
+            renderCompanies();
+            showStep(1);
+        })();
+    })();
+</script>
+</body>
+</html>

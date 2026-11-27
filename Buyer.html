@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="so" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SAHAN DATA - Foomka Iibka | Hel Xog & Abaalmarin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* CSS isgoob (same as before, comprehensive and accessible) */
+        :root {
+            --color-primary: #2e7d32;
+            --color-primary-dark: #1b5e20;
+            --color-primary-light: #60ad5e;
+            --color-gray-50: #f9fafb;
+            --color-gray-100: #f3f4f6;
+            --color-gray-200: #e5e7eb;
+            --color-gray-300: #d1d5db;
+            --color-gray-600: #4b5563;
+            --color-gray-800: #1f2937;
+            --color-gray-900: #111827;
+            --color-error: #dc2626;
+            --color-success: #16a34a;
+            --border-radius-card: 1.5rem;
+            --border-radius-element: 0.75rem;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --transition: all 0.2s ease;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-gray-50: #111827;
+                --color-gray-100: #1f2937;
+                --color-gray-200: #374151;
+                --color-gray-300: #4b5563;
+                --color-gray-600: #9ca3af;
+                --color-gray-800: #f3f4f6;
+                --color-gray-900: #f9fafb;
+            }
+            body { background-color: #0f172a; color: #e2e8f0; }
+            .bg-white { background-color: #1e293b !important; }
+            .step-panel, .option-card { background-color: #1e293b; border-color: #334155; }
+            input, select { background-color: #0f172a; border-color: #334155; color: #f1f5f9; }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background-color: var(--color-gray-50);
+            color: var(--color-gray-900);
+            line-height: 1.5;
+            padding: 1.5rem;
+        }
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--color-primary);
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+        }
+        .skip-link:focus { top: 0; }
+        .container { max-width: 80rem; margin: 0 auto; background: transparent; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 2rem; font-weight: 800; color: var(--color-primary); }
+        .header p { color: var(--color-gray-600); margin-top: 0.5rem; }
+        .stepper { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; }
+        .step-indicator {
+            flex: 1; text-align: center; padding: 0.75rem 0.5rem;
+            background-color: var(--color-gray-200); color: var(--color-gray-600);
+            border-radius: 9999px; font-weight: 600; transition: var(--transition);
+        }
+        .step-indicator.active { background-color: var(--color-primary); color: white; }
+        .step-indicator.completed { background-color: var(--color-primary-light); color: white; }
+        @media (max-width: 640px) { .step-indicator { font-size: 0.75rem; padding: 0.5rem 0.25rem; } }
+        .step-panel {
+            background-color: white; border-radius: var(--border-radius-card);
+            box-shadow: var(--shadow-md); padding: 1.5rem;
+            transition: var(--transition); border: 1px solid var(--color-gray-200);
+        }
+        .step-panel.hidden { display: none; }
+        .step-panel h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+        .grid-cards {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem; margin-bottom: 1.5rem;
+        }
+        .option-card {
+            border: 2px solid var(--color-gray-200); border-radius: var(--border-radius-element);
+            padding: 1rem; cursor: pointer; background: white; transition: var(--transition);
+            text-align: center;
+        }
+        .option-card:hover, .option-card:focus-visible {
+            transform: translateY(-2px); box-shadow: var(--shadow-md);
+            border-color: var(--color-primary-light);
+        }
+        .option-card.selected {
+            border-color: var(--color-primary); background-color: #e8f5e9;
+            box-shadow: 0 0 0 2px rgba(46,125,50,0.2);
+        }
+        .option-card img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 0.5rem; }
+        .option-card .emoji { font-size: 3rem; display: block; }
+        .option-card h3 { font-weight: 700; margin-top: 0.5rem; }
+        .option-card p { font-size: 0.875rem; color: var(--color-gray-600); }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+        .required::after { content: " *"; color: var(--color-error); }
+        input, select {
+            width: 100%; padding: 0.75rem 1rem;
+            border: 1px solid var(--color-gray-300); border-radius: var(--border-radius-element);
+            font-size: 1rem; transition: var(--transition); background: white;
+        }
+        input:focus, select:focus {
+            outline: none; border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(46,125,50,0.2);
+        }
+        .error-message { color: var(--color-error); font-size: 0.875rem; margin-top: 0.25rem; }
+        .button-group { display: flex; justify-content: space-between; gap: 1rem; margin-top: 1rem; }
+        button {
+            background-color: var(--color-primary); color: white; border: none;
+            padding: 0.75rem 1.5rem; border-radius: 9999px; font-weight: 600;
+            cursor: pointer; transition: var(--transition); font-size: 1rem;
+        }
+        button:focus-visible { outline: 2px solid var(--color-primary-dark); outline-offset: 2px; }
+        button:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-secondary { background-color: var(--color-gray-600); }
+        .btn-secondary:hover { background-color: var(--color-gray-800); }
+        .btn-primary:hover { background-color: var(--color-primary-dark); }
+        .plan-summary {
+            background-color: var(--color-gray-100); border-radius: var(--border-radius-element);
+            padding: 1rem; margin: 1rem 0;
+        }
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; backdrop-filter: blur(3px);
+        }
+        .loader-card { background: white; padding: 2rem; border-radius: 2rem; text-align: center; }
+        .spinner {
+            width: 48px; height: 48px; border: 4px solid var(--color-gray-200);
+            border-top: 4px solid var(--color-primary); border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+        footer { text-align: center; margin-top: 2rem; font-size: 0.75rem; color: var(--color-gray-600); }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="container" id="main-content">
+        <div class="header">
+            <h1>🛒 SAHAN DATA</h1>
+            <p>iibso package-data, hel abaalmarin degmo, koox, iskuul & soo jiidasho</p>
+        </div>
+
+        <div class="stepper" role="list" aria-label="Tallaabooyinka iibka">
+            <div id="step1-indicator" class="step-indicator active" aria-current="step">1️⃣ Shirkad</div>
+            <div id="step2-indicator" class="step-indicator" aria-current="step">2️⃣ Adeeg</div>
+            <div id="step3-indicator" class="step-indicator" aria-current="step">3️⃣ Qorshe</div>
+            <div id="step4-indicator" class="step-indicator" aria-current="step">4️⃣ Bixinta</div>
+        </div>
+
+        <!-- Step panels -->
+        <div id="step1-panel" class="step-panel" role="tabpanel">
+            <h2>🇸🇴 Dooro Shirkadda</h2>
+            <div id="companies-container" class="grid-cards" aria-live="polite"></div>
+            <div class="button-group">
+                <button id="nextStep1" disabled aria-describedby="step1-help">Next →</button>
+            </div>
+            <p id="step1-help" class="sr-only">Dooro hal shirkad si aad u socoto</p>
+        </div>
+
+        <div id="step2-panel" class="step-panel hidden" role="tabpanel">
+            <h2>📡 Dooro Adeegga</h2>
+            <div id="services-container" class="grid-cards"></div>
+            <div class="button-group">
+                <button id="prevStep2" class="btn-secondary">← Back</button>
+                <button id="nextStep2" disabled>Next →</button>
+            </div>
+        </div>
+
+        <div id="step3-panel" class="step-panel hidden" role="tabpanel">
+            <h2>📦 Dooro Qorshaha</h2>
+            <div id="plans-container" class="grid-cards"></div>
+            <div class="button-group">
+                <button id="prevStep3" class="btn-secondary">← Back</button>
+                <button id="nextStep3" disabled>Next →</button>
+            </div>
+        </div>
+
+        <div id="step4-panel" class="step-panel hidden" role="tabpanel">
+            <h2>💳 Bixinta & Faahfaahin</h2>
+            <div class="form-group">
+                <label for="customerPhone" class="required">📞 Lambarkaaga (telefoon) *</label>
+                <input type="tel" id="customerPhone" placeholder="612345678" autocomplete="tel" aria-required="true">
+                <div id="phoneError" class="error-message" aria-live="polite"></div>
+            </div>
+            <div class="form-group">
+                <label for="promoCode">🎟️ Promo Code (ikhtiyaar)</label>
+                <input type="text" id="promoCode" placeholder="Tusaale: 102" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="receiverPhone">🎁 Hadiyad: lambarka qofka helaya</label>
+                <input type="tel" id="receiverPhone" placeholder="612345678" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label id="paymentMethodLabel">💸 Habka bixinta *</label>
+                <div id="payment-methods-container" class="grid-cards" role="radiogroup" aria-labelledby="paymentMethodLabel"></div>
+            </div>
+            <div class="plan-summary" aria-live="polite">
+                <p><strong>Qorshaha la doortay:</strong> <span id="selectedPlanName">-</span></p>
+                <p><strong>Qiimaha:</strong> $<span id="selectedPlanPrice">0</span></p>
+            </div>
+            <div class="button-group">
+                <button id="prevStep4" class="btn-secondary">← Back</button>
+                <button id="submitOrderBtn" class="btn-primary">🚀 Xooji iibka</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loaderModal" class="loader-overlay hidden" aria-hidden="true">
+        <div class="loader-card" role="alertdialog" aria-label="Processing order">
+            <div class="spinner"></div>
+            <p>Waa la sameeyay dalabka...</p>
+        </div>
+    </div>
+
+    <footer><p>© SAHAN DATA — Dhammaan abaalmarinta waxaa lagu daraan dhibcahaaga</p></footer>
+
+    <script>
+        // ========== FIX: use unique variable name to avoid redeclaration ==========
+        const SUPABASE_URL = 'https://xccbmivhcbukqyplstae.supabase.co';   // Ku beddel URL-ka saxda ah
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjY2JtaXZoY2J1a3F5cGxzdGFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTcyNTIsImV4cCI6MjA4NjkzMzI1Mn0.lGr3cDItP1-LVJgzd5wW5gp0HsGUonuZj-T9qGL2nF0';               // Ku beddel anon key-ga saxda ah
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Global state
+        let selectedCompanyId = null;
+        let selectedServiceId = null;
+        let selectedPlan = null;
+        let selectedPaymentMethodId = null;
+        let companies = [], services = [], plans = [], paymentMethods = [];
+
+        // DOM elements
+        const step1Panel = document.getElementById('step1-panel');
+        const step2Panel = document.getElementById('step2-panel');
+        const step3Panel = document.getElementById('step3-panel');
+        const step4Panel = document.getElementById('step4-panel');
+        const nextStep1 = document.getElementById('nextStep1');
+        const nextStep2 = document.getElementById('nextStep2');
+        const nextStep3 = document.getElementById('nextStep3');
+        const prevStep2 = document.getElementById('prevStep2');
+        const prevStep3 = document.getElementById('prevStep3');
+        const prevStep4 = document.getElementById('prevStep4');
+        const submitBtn = document.getElementById('submitOrderBtn');
+
+        // Helper: update step indicators
+        function updateStepIndicators(currentStep) {
+            for (let s = 1; s <= 4; s++) {
+                const ind = document.getElementById(`step${s}-indicator`);
+                if (s === currentStep) {
+                    ind.classList.add('active');
+                    ind.classList.remove('completed');
+                    ind.setAttribute('aria-current', 'step');
+                } else if (s < currentStep) {
+                    ind.classList.add('completed');
+                    ind.classList.remove('active');
+                    ind.removeAttribute('aria-current');
+                } else {
+                    ind.classList.remove('active', 'completed');
+                    ind.removeAttribute('aria-current');
+                }
+            }
+        }
+
+        function showStep(step) {
+            step1Panel.classList.add('hidden');
+            step2Panel.classList.add('hidden');
+            step3Panel.classList.add('hidden');
+            step4Panel.classList.add('hidden');
+            if (step === 1) step1Panel.classList.remove('hidden');
+            if (step === 2) step2Panel.classList.remove('hidden');
+            if (step === 3) step3Panel.classList.remove('hidden');
+            if (step === 4) step4Panel.classList.remove('hidden');
+            updateStepIndicators(step);
+            const activePanel = document.querySelector('.step-panel:not(.hidden)');
+            if (activePanel) activePanel.focus({ preventScroll: true });
+        }
+
+        // ---------- Error-handled fetch functions ----------
+        async function loadCompanies() {
+            try {
+                const { data, error } = await supabaseClient.from('companies').select('*').order('name');
+                if (error) throw new Error(`loadCompanies error: ${error.message}`);
+                companies = data;
+                renderCompanies();
+            } catch (err) {
+                console.error('❌ SAHAN DATA Error (loadCompanies):', err);
+                document.getElementById('companies-container').innerHTML = `<p class="error-message">Failed to load companies: ${err.message}</p>`;
+            }
+        }
+
+        function renderCompanies() {
+            const container = document.getElementById('companies-container');
+            if (!container) return;
+            container.innerHTML = '';
+            companies.forEach(comp => {
+                const card = document.createElement('div');
+                card.className = `option-card ${selectedCompanyId === comp.id ? 'selected' : ''}`;
+                card.tabIndex = 0;
+                card.setAttribute('role', 'radio');
+                card.setAttribute('aria-checked', selectedCompanyId === comp.id);
+                card.innerHTML = comp.logo_url ? `<img src="${comp.logo_url}" alt="${comp.name} logo">` : `<span class="emoji" aria-hidden="true">🏢</span>`;
+                card.innerHTML += `<h3>${comp.name}</h3>`;
+                card.addEventListener('click', () => { selectedCompanyId = comp.id; selectedServiceId = null; selectedPlan = null; renderCompanies(); nextStep1.disabled = false; });
+                card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { selectedCompanyId = comp.id; selectedServiceId = null; selectedPlan = null; renderCompanies(); nextStep1.disabled = false; } });
+                container.appendChild(card);
+            });
+        }
+
+        async function loadServices(companyId) {
+            try {
+                const { data, error } = await supabaseClient.from('services').select('*').eq('company_id', companyId).order('name');
+                if (error) throw new Error(`loadServices error: ${error.message}`);
+                services = data;
+                renderServices();
+            } catch (err) {
+                console.error('❌ SAHAN DATA Error (loadServices):', err);
+                document.getElementById('services-container').innerHTML = `<p class="error-message">Failed to load services: ${err.message}</p>`;
+                nextStep2.disabled = true;
+            }
+        }
+
+        function renderServices() {
+            const container = document.getElementById('services-container');
+            container.innerHTML = '';
+            if (!services.length) { container.innerHTML = '<p>Adeegyo lama helin</p>'; nextStep2.disabled = true; return; }
+            services.forEach(srv => {
+                const card = document.createElement('div');
+                card.className = `option-card ${selectedServiceId === srv.id ? 'selected' : ''}`;
+                card.tabIndex = 0;
+                card.innerHTML = `<span class="emoji">${srv.icon || '📡'}</span><h3>${srv.name}</h3>`;
+                card.addEventListener('click', () => { selectedServiceId = srv.id; renderServices(); nextStep2.disabled = false; });
+                card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { selectedServiceId = srv.id; renderServices(); nextStep2.disabled = false; } });
+                container.appendChild(card);
+            });
+        }
+
+        async function loadPlans(serviceId) {
+            try {
+                const { data, error } = await supabaseClient.from('plans').select('*').eq('service_id', serviceId).order('price');
+                if (error) throw new Error(`loadPlans error: ${error.message}`);
+                plans = data;
+                renderPlans();
+            } catch (err) {
+                console.error('❌ SAHAN DATA Error (loadPlans):', err);
+                document.getElementById('plans-container').innerHTML = `<p class="error-message">Failed to load plans: ${err.message}</p>`;
+                nextStep3.disabled = true;
+            }
+        }
+
+        function renderPlans() {
+            const container = document.getElementById('plans-container');
+            container.innerHTML = '';
+            if (!plans.length) { container.innerHTML = '<p>Qorshayaal lama helin</p>'; nextStep3.disabled = true; return; }
+            plans.forEach(plan => {
+                const card = document.createElement('div');
+                card.className = `option-card ${selectedPlan?.id === plan.id ? 'selected' : ''}`;
+                card.tabIndex = 0;
+                const oldPriceHtml = plan.old_price ? `<span style="text-decoration:line-through;">$${parseFloat(plan.old_price).toFixed(2)}</span> ` : '';
+                card.innerHTML = `<div><span class="emoji">${plan.icon || '📦'}</span></div>
+                                  <h3>${plan.name}</h3>
+                                  <p>${plan.period || ''} ${plan.data_amount ? `• ${plan.data_amount}` : ''} ${plan.minutes ? `• ${plan.minutes}min` : ''}</p>
+                                  <p><strong>$${parseFloat(plan.price).toFixed(2)}</strong> ${oldPriceHtml}</p>`;
+                card.addEventListener('click', () => { selectedPlan = plan; renderPlans(); nextStep3.disabled = false; });
+                card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { selectedPlan = plan; renderPlans(); nextStep3.disabled = false; } });
+                container.appendChild(card);
+            });
+        }
+
+        async function loadPaymentMethods() {
+            try {
+                const { data, error } = await supabaseClient.from('payment_methods').select('*').eq('is_active', true).order('name');
+                if (error) throw new Error(`loadPaymentMethods error: ${error.message}`);
+                paymentMethods = data;
+                renderPaymentMethods();
+            } catch (err) {
+                console.error('❌ SAHAN DATA Error (loadPaymentMethods):', err);
+                document.getElementById('payment-methods-container').innerHTML = `<p class="error-message">Failed to load payment methods: ${err.message}</p>`;
+            }
+        }
+
+        function renderPaymentMethods() {
+            const container = document.getElementById('payment-methods-container');
+            container.innerHTML = '';
+            paymentMethods.forEach(pm => {
+                const card = document.createElement('div');
+                card.className = `option-card ${selectedPaymentMethodId === pm.id ? 'selected' : ''}`;
+                card.setAttribute('role', 'radio');
+                card.tabIndex = 0;
+                card.innerHTML = `<h3>${pm.name}</h3><p>${pm.ussd_prefix || ''}</p>`;
+                card.addEventListener('click', () => { selectedPaymentMethodId = pm.id; renderPaymentMethods(); });
+                card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { selectedPaymentMethodId = pm.id; renderPaymentMethods(); } });
+                container.appendChild(card);
+            });
+        }
+
+        async function getCustomerIdFromSession() {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session) return null;
+                const { data: customer } = await supabaseClient.from('customers').select('id').eq('uid', session.user.id).maybeSingle();
+                return customer?.id || null;
+            } catch (err) {
+                console.error('❌ SAHAN DATA Error (getCustomerId):', err);
+                return null;
+            }
+        }
+
+        async function submitOrder() {
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            const phoneErrorDiv = document.getElementById('phoneError');
+            if (!customerPhone.match(/^[0-9]{7,12}$/)) {
+                phoneErrorDiv.textContent = 'Fadlan geli lambar sax ah (tusaale: 612345678)';
+                document.getElementById('customerPhone').focus();
+                return;
+            }
+            phoneErrorDiv.textContent = '';
+            if (!selectedPlan) { alert("Qorshe lama doorto."); showStep(3); return; }
+            if (!selectedPaymentMethodId) { alert("Dooro habka bixinta."); return; }
+
+            const promo = document.getElementById('promoCode').value.trim() || null;
+            const receiverPhone = document.getElementById('receiverPhone').value.trim() || null;
+            const customerId = await getCustomerIdFromSession();
+
+            const payload = {
+                p_customer_id: customerId,
+                p_customer_phone: customerPhone,
+                p_product_id: selectedPlan.id,
+                p_promo_code: promo,
+                p_receiver_phone: receiverPhone,
+                p_payment_method_id: selectedPaymentMethodId
+            };
+
+            const loader = document.getElementById('loaderModal');
+            loader.classList.remove('hidden');
+            try {
+                const { data, error } = await supabaseClient.rpc('create_order', payload);
+                if (error) throw new Error(error.message);
+                alert(`🎉 Guul! Dalabka waa la xaqiijiyay.\n\n${data || 'USSD code: *712*...'}\nWaad ku mahadsantahay!`);
+                window.location.reload();
+            } catch (err) {
+                console.error('❌ SAHAN DATA Error (submitOrder):', err);
+                alert(`Cillad: ${err.message}\nFadlan isku day mar kale.`);
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        // Navigation event binding
+        nextStep1.onclick = async () => { if (selectedCompanyId) { await loadServices(selectedCompanyId); showStep(2); } };
+        prevStep2.onclick = () => showStep(1);
+        nextStep2.onclick = async () => { if (selectedServiceId) { await loadPlans(selectedServiceId); showStep(3); } };
+        prevStep3.onclick = () => showStep(2);
+        nextStep3.onclick = () => {
+            if (selectedPlan) {
+                document.getElementById('selectedPlanName').innerText = selectedPlan.name;
+                document.getElementById('selectedPlanPrice').innerText = parseFloat(selectedPlan.price).toFixed(2);
+                showStep(4);
+                loadPaymentMethods();
+            }
+        };
+        prevStep4.onclick = () => showStep(3);
+        submitBtn.onclick = submitOrder;
+
+        async function prefillUserPhone() {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    const { data: cust } = await supabaseClient.from('customers').select('phone_number').eq('uid', session.user.id).maybeSingle();
+                    if (cust?.phone_number) document.getElementById('customerPhone').value = cust.phone_number;
+                }
+            } catch (err) { console.error('❌ SAHAN DATA Error (prefill):', err); }
+        }
+
+        // Initial load
+        loadCompanies().catch(console.error);
+        prefillUserPhone();
+    </script>
+</body>
+</html>
